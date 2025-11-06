@@ -4,22 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Wagyu Blessing Amulet | #wagyu_blessing</title>
-  <meta name="description" content="Create a Japanese Omamori-style blessing card for travelers. Shareable and downloadable PNG.">
+  <meta name="description" content="Create a Japanese Omamori-style blessing card for travelers.">
   <style>
     :root{
-      --bg: #10b7b0;             /* default turquoise background */
+      --bg: #10b7b0;
       --ink: #0f2b2e;
-      --omamori: #b91c1c;        /* omamori red */
-      --panel: #f5e7c4;          /* inner cream */
-      --outline: #111111;        /* black outline */
-      --gold: #f6d889;           /* knot light */
-      --gold-dark: #d8b86a;      /* knot shadow */
+      --omamori: #b91c1c;
+      --panel: #f5e7c4;
+      --outline: #111111;
+      --gold: #f6d889;
+      --gold-dark: #d8b86a;
       --btn: #125a5a;
     }
     html,body{height:100%}
     body{
       margin:0;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Noto Sans JP, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
       color:var(--ink);
       background:#ece8d3;
     }
@@ -27,23 +27,59 @@
     h1{margin:0 0 6px;font-size:clamp(22px,3.2vw,36px)}
     .sub{opacity:.8}
     .wrap{
-      display:grid;gap:20px;align-items:start;
+      display:grid;
+      gap:20px;
+      align-items:flex-start;
       grid-template-columns:minmax(280px,420px) 1fr;
-      padding: 0 22px 28px;
+      padding:0 22px 28px;
     }
-    .card{background:#fffffff0;border:1px solid #0001;border-radius:16px;box-shadow:0 10px 24px #0001}
+    .card{
+      background:#fffffff0;
+      border:1px solid #0001;
+      border-radius:16px;
+      box-shadow:0 10px 24px #0001;
+    }
     .panel{padding:16px;position:relative;z-index:1;}
     .controls .row{display:flex;gap:10px;align-items:center;margin:10px 0}
     input,select,button{font-size:16px}
-    input[type=text],select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #0002}
-    button{cursor:pointer;border:none;border-radius:12px;padding:10px 14px;font-weight:600}
+    input[type=text],select{
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid #0002;
+    }
+    button{
+      cursor:pointer;
+      border:none;
+      border-radius:12px;
+      padding:10px 14px;
+      font-weight:600;
+    }
     .btn{background:var(--btn);color:#fff}
     .btn.alt{background:#fff;border:1px solid var(--btn);color:var(--btn)}
     .stack{display:flex;flex-wrap:wrap;gap:10px}
-    .chip{padding:8px 14px;border-radius:999px;border:1px solid #0002;background:#fff;user-select:none;cursor:pointer}
-    .chip.active{background:#0f766e;color:#fff;border-color:#0f766e}
+    .chip{
+      padding:8px 14px;
+      border-radius:999px;
+      border:1px solid #0002;
+      background:#fff;
+      cursor:pointer;
+      user-select:none;
+    }
+    .chip.active{
+      background:#0f766e;
+      color:#fff;
+      border-color:#0f766e;
+    }
     .preview{display:grid;place-items:center;padding:10px}
-    canvas{width:min(92%,520px);height:auto;max-height:78vh;aspect-ratio:2/3;background:transparent;display:block}
+    canvas{
+      width:min(92%,520px);
+      height:auto;
+      max-height:78vh;
+      aspect-ratio:2/3;
+      display:block;
+      background:transparent;
+    }
     @media (max-width:900px){
       .wrap{grid-template-columns:1fr}
       canvas{width:min(96%,560px)}
@@ -67,7 +103,7 @@
       <div class="controls">
         <div class="row">
           <label for="lang">Language</label>
-          <select id="lang" aria-label="language">
+          <select id="lang">
             <option value="ja">日本語</option>
             <option value="en">English</option>
             <option value="zh">中文</option>
@@ -80,13 +116,13 @@
         </div>
 
         <div class="row"><label>背景カラー（SNS映え）</label></div>
-        <div id="palette" class="stack" role="listbox" aria-label="背景カラー"></div>
+        <div id="palette" class="stack" aria-label="背景カラー"></div>
 
         <div class="row"><label>日本柄（装飾）</label></div>
-        <div id="motifs" class="stack" role="group" aria-label="日本柄の選択">
-          <button type="button" class="chip active" data-motif="sakura" aria-pressed="true">桜</button>
-          <button type="button" class="chip active" data-motif="seigaiha" aria-pressed="true">青海波</button>
-          <button type="button" class="chip active" data-motif="asanoha" aria-pressed="true">麻の葉</button>
+        <div id="motifs" class="stack" aria-label="日本柄の選択">
+          <button type="button" class="chip active" data-motif="sakura">桜</button>
+          <button type="button" class="chip active" data-motif="seigaiha">青海波</button>
+          <button type="button" class="chip active" data-motif="asanoha">麻の葉</button>
         </div>
         <div class="hint">※ ボタンを押すと柄のON/OFFが切り替わります</div>
 
@@ -113,16 +149,13 @@
   </div>
 
 <script>
-/* ===============================
-   定数・データ
-   =============================== */
-
+/* ===== データ ===== */
 const PALETTE = [
   { key:'turq',   name:'ターコイズ',   color:'#10b7b0' },
   { key:'indigo', name:'深い藍',       color:'#0f2540' },
   { key:'sakura', name:'桜ピンク',     color:'#ffd6e7' },
   { key:'jade',   name:'翡翠グリーン', color:'#18a999' },
-  { key:'kurogane',name:'黒 × 金',    gradient:['#151515','#222222','#080808'] }
+  { key:'kurogane',name:'黒 × 金',    gradient:['#151515','#222222','#050505'] }
 ];
 
 const I18N = {
@@ -131,32 +164,22 @@ const I18N = {
   zh:{ title:'祈福护身符',         sub:'旅途平安 · 长命百岁',             traveler:'Traveler', tag:'#wagyu_blessing' },
 };
 
-/* ===============================
-   DOM 取得
-   =============================== */
-const $ = (s, r=document)=>r.querySelector(s);
-const canvas   = $('#view');
+/* ===== DOM ===== */
+const canvas   = document.getElementById('view');
 const ctx      = canvas.getContext('2d');
-const nameEl   = $('#name');
-const langEl   = $('#lang');
-const paletteEl= $('#palette');
-const motifsEl = $('#motifs');
+const nameEl   = document.getElementById('name');
+const langEl   = document.getElementById('lang');
+const paletteEl= document.getElementById('palette');
+const motifsEl = document.getElementById('motifs');
+const makeBtn  = document.getElementById('make');
+const saveBtn  = document.getElementById('save');
+const shareBtn = document.getElementById('share');
 
-const makeBtn  = $('#make');
-const saveBtn  = $('#save');
-const shareBtn = $('#share');
-
-/* ===============================
-   状態
-   =============================== */
-
+/* ===== 状態 ===== */
 let currentColorKey = 'turq';
-const motifState = { sakura:true, seigaiha:true, asanoha:true };
+const motifs = { sakura:true, seigaiha:true, asanoha:true };
 
-/* ===============================
-   パレットの作成
-   =============================== */
-
+/* ===== パレット作成 ===== */
 function buildPalette(){
   PALETTE.forEach(p=>{
     const btn = document.createElement('button');
@@ -165,10 +188,10 @@ function buildPalette(){
     btn.textContent = p.name;
     if(p.gradient){
       btn.style.background = `linear-gradient(135deg, ${p.gradient.join(',')})`;
-      btn.style.color = '#ffffff';
+      btn.style.color = '#fff';
     }else{
       btn.style.background = p.color;
-      btn.style.color = '#ffffff';
+      btn.style.color = '#fff';
     }
     btn.addEventListener('click', ()=>{
       currentColorKey = p.key;
@@ -180,25 +203,18 @@ function buildPalette(){
   });
 }
 
-/* ===============================
-   和柄トグル（桜／青海波／麻の葉）
-   =============================== */
-
+/* ===== 柄トグル（桜／青海波／麻の葉） ===== */
 motifsEl.addEventListener('click', (e)=>{
   const btn = e.target.closest('[data-motif]');
   if(!btn) return;
   const key = btn.dataset.motif;
-  motifState[key] = !motifState[key];
-  btn.classList.toggle('active', motifState[key]);
-  btn.setAttribute('aria-pressed', motifState[key] ? 'true' : 'false');
+  motifs[key] = !motifs[key];
+  btn.classList.toggle('active', motifs[key]);
   draw();
 });
 
-/* ===============================
-   描画用ユーティリティ
-   =============================== */
-
-function getThemeColor(){
+/* ===== 描画ユーティリティ ===== */
+function getTheme(){
   return PALETTE.find(p=>p.key===currentColorKey) || PALETTE[0];
 }
 
@@ -213,7 +229,8 @@ function roundedRectPath(x,y,w,h,r){
 
 function drawSeigaiha(x,y,w,h,color){
   ctx.save();
-  ctx.strokeStyle=color; ctx.lineWidth=2;
+  ctx.strokeStyle=color;
+  ctx.lineWidth=2;
   const r=22;
   for(let yy=y; yy<y+h; yy+=r){
     for(let xx=x; xx<x+w; xx+=r){
@@ -229,7 +246,8 @@ function drawSeigaiha(x,y,w,h,color){
 
 function drawAsanoha(x,y,w,h,color){
   ctx.save();
-  ctx.strokeStyle=color; ctx.lineWidth=1.5;
+  ctx.strokeStyle=color;
+  ctx.lineWidth=1.5;
   const s=28;
   for(let yy=y; yy<y+h+s; yy+=s){
     for(let xx=x; xx<x+w+s; xx+=s){
@@ -242,58 +260,62 @@ function drawAsanoha(x,y,w,h,color){
   ctx.restore();
 }
 
-function drawSakura(x,y,scale=1,rot=0,color='rgba(0,0,0,.12)'){
+function drawSakura(x,y,scale,rot,color){
   ctx.save();
-  ctx.translate(x,y); ctx.rotate(rot); ctx.scale(scale,scale);
+  ctx.translate(x,y);
+  ctx.rotate(rot);
+  ctx.scale(scale,scale);
   ctx.fillStyle=color;
   ctx.beginPath();
   for(let i=0;i<5;i++){
     const a=i*(Math.PI*2/5);
-    const px=Math.cos(a)*28, py=Math.sin(a)*28;
+    const px=Math.cos(a)*28;
+    const py=Math.sin(a)*28;
     ctx.moveTo(0,0);
-    ctx.quadraticCurveTo(px*.6, py*.6, px, py);
-    ctx.quadraticCurveTo(px*1.2, py*1.2, 0, 0);
+    ctx.quadraticCurveTo(px*0.6,py*0.6,px,py);
+    ctx.quadraticCurveTo(px*1.2,py*1.2,0,0);
   }
-  ctx.closePath(); ctx.fill();
+  ctx.closePath();
+  ctx.fill();
   ctx.restore();
 }
 
-function drawKnot(cx,cy,scale=1){
+function drawKnot(cx,cy,scale){
+  const gold     = getComputedStyle(document.documentElement).getPropertyValue('--gold').trim();
+  const goldDark = getComputedStyle(document.documentElement).getPropertyValue('--gold-dark').trim();
   ctx.save();
-  ctx.translate(cx,cy); ctx.scale(scale,scale);
-  ctx.lineWidth=28; ctx.lineCap='round';
-  ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--gold').trim();
+  ctx.translate(cx,cy);
+  ctx.scale(scale,scale);
+  ctx.lineWidth=28;
+  ctx.lineCap='round';
+  ctx.strokeStyle=gold;
   ctx.beginPath();
   ctx.moveTo(-120,0); ctx.quadraticCurveTo(-40,-80,0,0); ctx.quadraticCurveTo(40,80,120,0); ctx.stroke();
   ctx.lineWidth=10;
-  ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--gold-dark').trim();
+  ctx.strokeStyle=goldDark;
   ctx.beginPath();
   ctx.moveTo(-120,0); ctx.quadraticCurveTo(-40,-80,0,0); ctx.quadraticCurveTo(40,80,120,0); ctx.stroke();
   ctx.restore();
 }
 
-function drawText(txt,x,y,size,weight){
+function drawText(text,x,y,size,weight){
   ctx.save();
   ctx.font = `${weight} ${size}px/1.2 system-ui, -apple-system, "Segoe UI", "Noto Sans JP", sans-serif`;
   ctx.textAlign='center';
   ctx.textBaseline='middle';
-  ctx.fillText(txt,x,y);
+  ctx.fillText(text,x,y);
   ctx.restore();
 }
 
-/* ===============================
-   メイン描画
-   =============================== */
-
+/* ===== メイン描画 ===== */
 function draw(){
   const W = canvas.width;
   const H = canvas.height;
   const pad = 110;
 
   const lang = I18N[langEl.value] || I18N.ja;
-  const name = (nameEl.value || '').trim() || lang.traveler;
-
-  const theme = getThemeColor();
+  const travelerName = (nameEl.value || '').trim() || lang.traveler;
+  const theme = getTheme();
 
   // 背景
   ctx.clearRect(0,0,W,H);
@@ -309,13 +331,17 @@ function draw(){
   const ow = W - pad*2;
   const oh = H - pad*2;
 
+  // お守り本体
+  const omamoriColor = getComputedStyle(document.documentElement).getPropertyValue('--omamori').trim();
+  const outlineColor = getComputedStyle(document.documentElement).getPropertyValue('--outline').trim();
+  const panelColor   = getComputedStyle(document.documentElement).getPropertyValue('--panel').trim();
+
   ctx.save();
-  // お守り外枠（赤）
-  ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--omamori').trim();
+  ctx.fillStyle=omamoriColor;
   roundedRectPath(pad,pad,ow,oh,56);
   ctx.fill();
   ctx.lineWidth=10;
-  ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--outline').trim();
+  ctx.strokeStyle=outlineColor;
   ctx.stroke();
 
   // 上の山形
@@ -331,25 +357,26 @@ function draw(){
   ctx.fill();
   ctx.stroke();
 
-  // 和柄（トグル）
+  // 内側の柄エリア
   const innerX = pad+24;
   const innerY = pad+90;
   const innerW = ow-48;
   const innerH = oh-170;
-  if(motifState.seigaiha){
+
+  if(motifs.seigaiha){
     drawSeigaiha(innerX,innerY,innerW,innerH,'rgba(0,0,0,.10)');
   }
-  if(motifState.asanoha){
+  if(motifs.asanoha){
     drawAsanoha(innerX,innerY,innerW,innerH,'rgba(0,0,0,.10)');
   }
-  if(motifState.sakura){
-    drawSakura(pad+170,pad+220,1.45,0.2,'rgba(0,0,0,.10)');
-    drawSakura(W-pad-210,pad+340,1.15,-0.3,'rgba(0,0,0,.10)');
+  if(motifs.sakura){
+    drawSakura(pad+170,pad+220,1.45,0.2,'rgba(0,0,0,.12)');
+    drawSakura(W-pad-210,pad+340,1.15,-0.3,'rgba(0,0,0,.12)');
   }
 
-  // 内側クリーム＋縁
+  // 内側パネル
   const ip = 40;
-  ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--panel').trim();
+  ctx.fillStyle=panelColor;
   roundedRectPath(pad+ip, pad+ip+90, ow-ip*2, oh-ip*2-90, 24);
   ctx.fill();
   ctx.lineWidth=14;
@@ -365,9 +392,8 @@ function draw(){
   drawText(lang.title, W/2, pad+420, 72, 900);
   ctx.fillStyle='#333';
   drawText(lang.sub,   W/2, pad+500, 42, 700);
-
   ctx.fillStyle='#111';
-  drawText(name, W/2, H-pad-420, 120, 900);
+  drawText(travelerName, W/2, H-pad-420, 120, 900);
 
   // 下の赤い波
   ctx.save();
@@ -389,10 +415,7 @@ function draw(){
   drawText(I18N.ja.tag, W/2, H-pad-90, 48, 800);
 }
 
-/* ===============================
-   保存 & シェア
-   =============================== */
-
+/* ===== PNG保存 & シェア ===== */
 function downloadURI(uri, filename){
   const a=document.createElement('a');
   a.href=uri;
@@ -402,26 +425,15 @@ function downloadURI(uri, filename){
   a.remove();
 }
 
-/* ===============================
-   イベント
-   =============================== */
-
-makeBtn.addEventListener('click', draw);
-langEl.addEventListener('change', draw);
-nameEl.addEventListener('input', draw);
-
 saveBtn.addEventListener('click', ()=>{
   const data = canvas.toDataURL('image/png');
-  downloadURI(data, 'omamori_' + Date.now() + '.png');
+  downloadURI(data, 'omamori_'+Date.now()+'.png');
 });
 
 shareBtn.addEventListener('click', ()=>{
   try{
-    if(navigator.canShare && navigator.canShare({ text:'#wagyu_blessing' })){
-      navigator.share({
-        title:'Wagyu Blessing Amulet',
-        text:'#wagyu_blessing'
-      });
+    if(navigator.canShare && navigator.canShare({text:'#wagyu_blessing'})){
+      navigator.share({title:'Wagyu Blessing Amulet', text:'#wagyu_blessing'});
     }else{
       navigator.clipboard?.writeText('#wagyu_blessing');
       alert('ハッシュタグ #wagyu_blessing をコピーしました。画像は「PNGを保存」からどうぞ。');
@@ -432,9 +444,11 @@ shareBtn.addEventListener('click', ()=>{
   }
 });
 
-/* ===============================
-   初期化
-   =============================== */
+/* ===== イベント & 初期描画 ===== */
+makeBtn.addEventListener('click', draw);
+langEl.addEventListener('change', draw);
+nameEl.addEventListener('input', draw);
+
 buildPalette();
 draw();
 </script>
