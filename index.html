@@ -77,12 +77,13 @@
         <div class="row"><label>背景カラー（SNS映え）</label></div>
         <div id="palette" class="stack" role="listbox" aria-label="背景カラー"></div>
 
-        <div class="row"><label>日本柄（装飾）</label></div>
-        <div id="motifs" class="stack">
-          <div class="chip active" data-motif="sakura">桜</div>
-          <div class="chip active" data-motif="seigaiha">青海波</div>
-          <div class="chip active" data-motif="asanoha">麻の葉</div>
-        </div>
+      <div class="row"><label>日本柄（装飾）</label></div>
+　　　<div id="motifs" class="stack" role="group" aria-label="日本柄の選択">
+　　  <button type="button" class="chip active" data-motif="sakura" aria-pressed="true">桜</button>
+　　  <button type="button" class="chip active" data-motif="seigaiha" aria-pressed="true">青海波</button>
+　　  <button type="button" class="chip active" data-motif="asanoha" aria-pressed="true">麻の葉</button>
+</div>
+
 
         <div class="row" style="gap:8px">
           <button class="btn" id="make">願いを込めて お守りを作る</button>
@@ -345,6 +346,23 @@ nameInput.addEventListener('input', draw);
 
 // initial draw
 draw();
+</script>
+<script>
+// --- 和柄トグル（button版・イベント委譲）---
+const motifs = { sakura:true, seigaiha:true, asanoha:true };
+const motifsWrap = document.getElementById('motifs');
+if (motifsWrap && !motifsWrap.dataset.bound) {
+  motifsWrap.dataset.bound = "1";
+  motifsWrap.addEventListener('click', (e)=>{
+    const btn = e.target.closest('[data-motif]');
+    if (!btn) return;
+    const key = btn.dataset.motif;
+    motifs[key] = !motifs[key];
+    btn.classList.toggle('active', motifs[key]);
+    btn.setAttribute('aria-pressed', motifs[key] ? 'true' : 'false');
+    if (typeof draw === 'function') draw();
+  });
+}
 </script>
 </body>
 </html>
