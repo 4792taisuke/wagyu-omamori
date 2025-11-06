@@ -314,91 +314,117 @@ function draw(){
   const pad = 110;
 
   const lang = I18N[langEl.value] || I18N.ja;
-  const travelerName = (nameEl.value || '').trim() || lang.traveler;
+  const travelerName = (nameEl.value || "").trim() || lang.traveler;
   const theme = getTheme();
 
   // 背景
   ctx.clearRect(0,0,W,H);
-  if(theme.gradient){
+  if (theme.gradient){
     const g = ctx.createLinearGradient(0,0,W,H);
     theme.gradient.forEach((c,i)=>g.addColorStop(i/(theme.gradient.length-1), c));
-    ctx.fillStyle=g;
-  }else{
-    ctx.fillStyle=theme.color;
+    ctx.fillStyle = g;
+  } else {
+    ctx.fillStyle = theme.color;
   }
   ctx.fillRect(0,0,W,H);
 
   const ow = W - pad*2;
   const oh = H - pad*2;
 
-  // お守り本体
-  const omamoriColor = getComputedStyle(document.documentElement).getPropertyValue('--omamori').trim();
-  const outlineColor = getComputedStyle(document.documentElement).getPropertyValue('--outline').trim();
-  const panelColor   = getComputedStyle(document.documentElement).getPropertyValue('--panel').trim();
+  const omamoriColor = getComputedStyle(document.documentElement).getPropertyValue("--omamori").trim();
+  const outlineColor = getComputedStyle(document.documentElement).getPropertyValue("--outline").trim();
+  const panelColor   = getComputedStyle(document.documentElement).getPropertyValue("--panel").trim();
 
+  // =========================
+  // お守り本体（赤）
+  // =========================
   ctx.save();
-  ctx.fillStyle=omamoriColor;
+  ctx.fillStyle = omamoriColor;
   roundedRectPath(pad,pad,ow,oh,56);
   ctx.fill();
-  ctx.lineWidth=10;
-  ctx.strokeStyle=outlineColor;
+  ctx.lineWidth = 10;
+  ctx.strokeStyle = outlineColor;
   ctx.stroke();
 
   // 上の山形
   ctx.beginPath();
-  ctx.moveTo(pad+120,pad);
-  ctx.lineTo(W/2-86,pad);
-  ctx.lineTo(W/2,pad-86);
-  ctx.lineTo(W/2+86,pad);
-  ctx.lineTo(W-pad-120,pad);
-  ctx.lineTo(W-pad-120,pad+44);
-  ctx.lineTo(pad+120,pad+44);
+  ctx.moveTo(pad+120, pad);
+  ctx.lineTo(W/2-86, pad);
+  ctx.lineTo(W/2,    pad-86);
+  ctx.lineTo(W/2+86, pad);
+  ctx.lineTo(W-pad-120, pad);
+  ctx.lineTo(W-pad-120, pad+44);
+  ctx.lineTo(pad+120,   pad+44);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
+  ctx.restore();
 
-  // 内側の柄エリア
-  const innerX = pad+24;
-  const innerY = pad+90;
-  const innerW = ow-48;
-  const innerH = oh-170;
-
-  if(motifs.seigaiha){
-    drawSeigaiha(innerX,innerY,innerW,innerH,'rgba(0,0,0,.10)');
-  }
-  if(motifs.asanoha){
-    drawAsanoha(innerX,innerY,innerW,innerH,'rgba(0,0,0,.10)');
-  }
-  if(motifs.sakura){
-    drawSakura(pad+170,pad+220,1.45,0.2,'rgba(0,0,0,.12)');
-    drawSakura(W-pad-210,pad+340,1.15,-0.3,'rgba(0,0,0,.12)');
-  }
-
-  // 内側パネル
+  // =========================
+  // 内側パネル（クリーム）
+  // =========================
   const ip = 40;
-  ctx.fillStyle=panelColor;
-  roundedRectPath(pad+ip, pad+ip+90, ow-ip*2, oh-ip*2-90, 24);
+  const panelX = pad + ip;
+  const panelY = pad + ip + 90;
+  const panelW = ow  - ip*2;
+  const panelH = oh  - ip*2 - 90;
+  const panelR = 24;
+
+  ctx.save();
+  ctx.fillStyle = panelColor;
+  roundedRectPath(panelX, panelY, panelW, panelH, panelR);
   ctx.fill();
-  ctx.lineWidth=14;
-  ctx.strokeStyle='#7b1717';
+  ctx.lineWidth = 14;
+  ctx.strokeStyle = "#7b1717";
   ctx.stroke();
   ctx.restore();
 
-  // 結び
-  drawKnot(W/2,pad+36,1);
+  // =========================
+  // パネルの中に柄をクリップして描画
+  // =========================
+  ctx.save();
+  // クリップ範囲はパネルと同じ
+  roundedRectPath(panelX, panelY, panelW, panelH, panelR);
+  ctx.clip();
 
+  const innerX = panelX + 10;
+  const innerY = panelY + 10;
+  const innerW = panelW - 20;
+  const innerH = panelH - 20;
+
+  if (motifs.seigaiha){
+    drawSeigaiha(innerX, innerY, innerW, innerH, "rgba(0,0,0,.10)");
+  }
+  if (motifs.asanoha){
+    drawAsanoha(innerX, innerY, innerW, innerH, "rgba(0,0,0,.10)");
+  }
+  if (motifs.sakura){
+    drawSakura(panelX + panelW*0.25, panelY + panelH*0.25, 1.3,  0.2, "rgba(0,0,0,.12)");
+    drawSakura(panelX + panelW*0.75, panelY + panelH*0.45, 1.1, -0.3, "rgba(0,0,0,.12)");
+  }
+  ctx.restore();
+
+  // =========================
+  // 結び（上部の紐）
+  // =========================
+  drawKnot(W/2, pad+36, 1);
+
+  // =========================
   // テキスト
-  ctx.fillStyle='#222';
+  // =========================
+  ctx.fillStyle = "#222";
   drawText(lang.title, W/2, pad+420, 72, 900);
-  ctx.fillStyle='#333';
+  ctx.fillStyle = "#333";
   drawText(lang.sub,   W/2, pad+500, 42, 700);
-  ctx.fillStyle='#111';
+  ctx.fillStyle = "#111";
   drawText(travelerName, W/2, H-pad-420, 120, 900);
 
+  // =========================
   // 下の赤い波
+  // =========================
   ctx.save();
   ctx.translate(W/2, H-pad-330);
-  ctx.fillStyle='#a02626';
+  ctx.fillStyle = "#a02626";
   ctx.beginPath();
   ctx.moveTo(-360,42);
   ctx.quadraticCurveTo(-220,-10,-90,30);
@@ -410,10 +436,13 @@ function draw(){
   ctx.fill();
   ctx.restore();
 
+  // =========================
   // ハッシュタグ
-  ctx.fillStyle='#111';
+  // =========================
+  ctx.fillStyle = "#111";
   drawText(I18N.ja.tag, W/2, H-pad-90, 48, 800);
 }
+
 
 /* ===== PNG保存 & シェア ===== */
 function downloadURI(uri, filename){
