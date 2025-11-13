@@ -149,47 +149,82 @@
   </div>
 
 <script>
-  // キャンバスを準備
-  const canvas = document.getElementById("view");
-  const ctx = canvas.getContext("2d");
+  // ===== 基本の準備 =====
+  const canvas   = document.getElementById("view");
+  const ctx      = canvas.getContext("2d");
+  const langEl   = document.getElementById("lang");
+  const nameEl   = document.getElementById("name");
+  const makeBtn  = document.getElementById("make");
+  const saveBtn  = document.getElementById("save");
+  const shareBtn = document.getElementById("share");
+  const paletteEl = document.getElementById("palette");
 
-  // ① 文字なしお守り画像を読み込む
+  // 文字なしお守り画像
   const base = new Image();
-  base.src = "omamori_base.png"; // 同じフォルダに置いた文字なし画像のファイル名
-
+  base.src = "omamori_base.png";          // さっきアップした画像
   let baseLoaded = false;
+
+  // 背景色（ターコイズを初期値に）
+  let currentBg = "#10b7b0";
+
   base.onload = () => {
     baseLoaded = true;
-    draw();  // 読み込み完了したら一度描画
+    draw();                               // 読み込み完了で一度描画
   };
 
-  // 入力パーツをとってくる
-  const langEl  = document.getElementById("lang");
-  const nameEl  = document.getElementById("name");
-  const makeBtn = document.getElementById("make");
-  const saveBtn = document.getElementById("save");
-  const shareBtn = document.getElementById("share");
-
-  // 表示するテキスト（言語ごと）
+  // ===== 言語ごとの表示テキスト =====
   const I18N = {
     ja: {
-      title: "Blessing Amulet",
-      sub: "Safe Travels & Long Life",
+      title:    "旅のお守り",
+      sub:      "安全な旅路と長寿を祈って",
       traveler: "Traveler",
     },
     en: {
-      title: "Blessing Amulet",
-      sub: "Safe Travels & Long Life",
+      title:    "Blessing Amulet",
+      sub:      "Safe Travels & Long Life",
       traveler: "Traveler",
     },
     zh: {
-      title: "祈福护身符",
-      sub: "旅途平安 · 长命百岁",
+      title:    "祈福护身符",
+      sub:      "旅途平安 · 长命百岁",
       traveler: "Traveler",
     },
   };
 
-  // 文字を描くヘルパー関数
+  // ===== 背景色パレット（ボタン生成） =====
+  const BG_COLORS = [
+    { label: "深い藍",     color: "#0b3b5a" },
+    { label: "桜ピンク",   color: "#f9c5cf" },
+    { label: "翡翠グリーン", color: "#0f766e" },
+    { label: "黒×金",     color: "#111111" },
+    { label: "ターコイズ", color: "#10b7b0" },   // 初期選択
+  ];
+
+  function initPalette() {
+    BG_COLORS.forEach((c, index) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "chip" + (index === BG_COLORS.length - 1 ? " active" : "");
+      btn.textContent = c.label;
+      btn.dataset.color = c.color;
+      paletteEl.appendChild(btn);
+    });
+
+    // クリックで背景色を変更
+    paletteEl.addEventListener("click", (e) => {
+      const target = e.target;
+      if (!target.classList.contains("chip")) return;
+
+      // active の切り替え
+      [...paletteEl.querySelectorAll(".chip")].forEach(b => b.classList.remove("active"));
+      target.classList.add("active");
+
+      currentBg = target.dataset.color;
+      draw();
+    });
+  }
+
+  // ===== 文字描画用のヘルパー =====
   function drawText(text, x, y, size, weight) {
     ctx.save();
     ctx.font = `${weight} ${size}px "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif`;
@@ -200,34 +235,40 @@
     ctx.restore();
   }
 
-  // メインの描画関数
+  // ===== メイン描画 =====
   function draw() {
-    if (!baseLoaded) return; // 画像読み込み前は何もしない
+    if (!baseLoaded) return;
 
     const W = canvas.width;
     const H = canvas.height;
 
-    // ② まず「文字なしお守り」をそのまま描画
+    // 背景色
     ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = currentBg;
+    ctx.fillRect(0, 0, W, H);
+
+    // 文字なしお守り
     ctx.drawImage(base, 0, 0, W, H);
 
-    // ③ 上から文字を重ねる
+    // 言語と名前
     const lang = I18N[langEl.value] || I18N.ja;
     const travelerName = (nameEl.value || "").trim() || lang.traveler;
 
-    // ↓この4つの位置は、あとで微調整してOKです（1200x1800前提の目安）
-    drawText(lang.title,        W / 2, 470,  82, "700"); // Blessing Amulet
-    drawText(lang.sub,          W / 2, 560,  42, "600"); // Safe Travels & Long Life
-    drawText(travelerName,      W / 2, 1200, 96, "700"); // お客様の名前
-    drawText("#wagyu_blessing", W / 2, 1520, 48, "600"); // ハッシュタグ
+    // ★ 文字位置を微調整（スクショを見て合わせました）
+    drawText(lang.title,        W / 2,  650,  90, "700"); // タイトル
+    drawText(lang.sub,          W / 2,  735,  46, "600"); // サブタイトル
+    drawText(travelerName,      W / 2, 1230, 96, "700"); // Traveler
+    drawText("#wagyu_blessing", W / 2, 1560, 50, "600"); // ハッシュタグ
   }
 
-  // ボタンや入力にイベントをつける
-  makeBtn.addEventListener("click", draw);
-  langEl.addEventListener("change", draw);
-  nameEl.addEventListener("input", draw);
+  // ===== イベント設定 =====
+  initPalette();                 // 背景ボタンを作る
 
-  // PNG保存ボタン
+  makeBtn.addEventListener("click", draw);    // 「願いを込めて」を押すと再描画
+  langEl.addEventListener("change", draw);    // 言語切り替え
+  nameEl.addEventListener("input", draw);     // 名前入力で即反映
+
+  // PNG保存
   saveBtn.addEventListener("click", () => {
     const data = canvas.toDataURL("image/png");
     const a = document.createElement("a");
@@ -236,7 +277,7 @@
     a.click();
   });
 
-  // シェアボタン（Web Share API or クリップボード）
+  // シェア（Web Share API or クリップボード）
   shareBtn.addEventListener("click", () => {
     const tag = "#wagyu_blessing";
     if (navigator.share) {
