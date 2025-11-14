@@ -330,19 +330,36 @@ function draw() {
   ctx.fillStyle = currentBg;
   ctx.fillRect(0, 0, W, H);
 
-  // お守り本体（高解像度ベース画像）
+  // お守り本体
   ctx.drawImage(base, 0, 0, W, H);
 
-  // テキスト
+  // 言語データ & レイアウト
   const langData = I18N[currentLang] || I18N.ja;
+  const layout   = LAYOUT[currentLang] || LAYOUT.ja;
+
   const travelerName = (nameEl.value || "").trim() || langData.traveler;
 
   // タイトル
-  drawText(langData.title,   W / 2,  750,  90, "700");
+  drawText(
+    langData.title,
+    W / 2,
+    layout.titleY,
+    layout.titleSize,
+    "700"
+  );
+
   // サブタイトル
-  drawText(langData.sub,     W / 2,  850,  44, "600");
-  // 名前（Traveler）
-  drawText(travelerName,     W / 2, 1516, 100, "700");
+  drawText(
+    langData.sub,
+    W / 2,
+    layout.subY,
+    layout.subSize,
+    "600"
+  );
+
+  // Traveler（お名前）
+  drawText(travelerName, W / 2, 1516, 100, "700");
+
   // ハッシュタグ
   drawText("#wagyu_blessing", W / 2, 1618, 50, "600");
 }
