@@ -328,10 +328,17 @@
     const travelerName = (nameEl.value || "").trim() || langData.traveler;
 
     // 位置は 1200x1800 前提で微調整しています
-    drawText(langData.title,   W / 2,  650,  90, "700"); // タイトル
-    drawText(langData.sub,     W / 2,  735,  46, "600"); // サブ
-    drawText(travelerName,     W / 2, 1230, 96, "700");  // 名前
-    drawText("#wagyu_blessing",W / 2, 1560, 50, "600");  // ハッシュタグ
+  // タイトル：少し下へ（菊から余白をあける）
+drawText(langData.title,   W / 2,  700,  90, "700");
+
+// サブタイトル：タイトルのすぐ下に
+drawText(langData.sub,     W / 2,  780,  44, "600");
+
+// Traveler（お名前）：赤い帯の中央あたりに来るように下げる
+drawText(travelerName,     W / 2, 1450, 100, "700");
+
+// ハッシュタグ：Traveler の少し下、最下部寄り
+drawText("#wagyu_blessing",W / 2, 1605, 50, "600");
   }
 
   // ===== イベント設定 =====
