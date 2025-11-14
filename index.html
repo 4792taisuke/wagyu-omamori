@@ -334,7 +334,7 @@ const BG_COLORS = [
     ctx.drawImage(base, 0, 0, W, H);
 
     // テキスト
-    const langData = CANVAS_I18N[currentLang] || CANVAS_I18N.ja;
+　　const langData = I18N[currentLang] || I18N.ja;
     const travelerName = (nameEl.value || "").trim() || langData.traveler;
 
     // 位置は 1200x1800 前提で微調整しています
