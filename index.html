@@ -340,28 +340,16 @@ function draw() {
   const travelerName = (nameEl.value || "").trim() || langData.traveler;
 
   // タイトル
-  drawText(
-    langData.title,
-    W / 2,
-    layout.titleY,
-    layout.titleSize,
-    "700"
-  );
+  drawText(langData.title, W / 2, layout.titleY, layout.titleSize, "700");
 
   // サブタイトル
-  drawText(
-    langData.sub,
-    W / 2,
-    layout.subY,
-    layout.subSize,
-    "600"
-  );
+  drawText(langData.sub,   W / 2, layout.subY,   layout.subSize,   "600");
 
   // Traveler（お名前）
-  drawText(travelerName, W / 2, 1516, 100, "700");
+  drawText(travelerName,        W / 2, 1516, 100, "700");
 
   // ハッシュタグ
-  drawText("#wagyu_blessing", W / 2, 1618, 50, "600");
+  drawText("#wagyu_blessing",   W / 2, 1618, 50,  "600");
 }
 
   // ===== イベント設定 =====
