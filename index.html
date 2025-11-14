@@ -1,3 +1,144 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wagyu Blessing Amulet | #wagyu_blessing</title>
+  <meta name="description" content="Create a Japanese Omamori-style blessing card for travelers.">
+  <style>
+    :root{
+      --bg: #10b7b0;
+      --ink: #0f2b2e;
+      --omamori: #b91c1c;
+      --panel: #f5e7c4;
+      --outline: #111111;
+      --gold: #f6d889;
+      --gold-dark: #d8b86a;
+      --btn: #125a5a;
+    }
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
+      color:var(--ink);
+      background:#ece8d3;
+    }
+    header{padding:18px 22px}
+    h1{margin:0 0 6px;font-size:clamp(22px,3.2vw,36px)}
+    .sub{opacity:.8}
+    .wrap{
+      display:grid;
+      gap:20px;
+      align-items:flex-start;
+      grid-template-columns:minmax(280px,420px) 1fr;
+      padding:0 22px 28px;
+    }
+    .card{
+      background:#fffffff0;
+      border:1px solid #0001;
+      border-radius:16px;
+      box-shadow:0 10px 24px #0001;
+    }
+    .panel{padding:16px;position:relative;z-index:1;}
+    .controls .row{display:flex;gap:10px;align-items:center;margin:10px 0}
+    input,select,button{font-size:16px}
+    input[type=text],select{
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid #0002;
+    }
+    button{
+      cursor:pointer;
+      border:none;
+      border-radius:12px;
+      padding:10px 14px;
+      font-weight:600;
+    }
+    .btn{background:var(--btn);color:#fff}
+    .btn.alt{background:#fff;border:1px solid var(--btn);color:var(--btn)}
+    .stack{display:flex;flex-wrap:wrap;gap:10px}
+    .chip{
+      padding:8px 14px;
+      border-radius:999px;
+      border:1px solid #0002;
+      background:#fff;
+      cursor:pointer;
+      user-select:none;
+    }
+    .chip.active{
+      background:#0f766e;
+      color:#fff;
+      border-color:#0f766e;
+    }
+    .preview{display:grid;place-items:center;padding:10px}
+    canvas{
+      width:min(92%,520px);
+      height:auto;
+      max-height:78vh;
+      aspect-ratio:2/3;
+      display:block;
+      background:transparent;
+    }
+    @media (max-width:900px){
+      .wrap{grid-template-columns:1fr}
+      canvas{width:min(96%,560px)}
+    }
+    .hint{font-size:12px;opacity:.7;margin-top:-4px}
+    .footer{padding:16px;text-align:center;opacity:.75}
+  </style>
+</head>
+<body>
+  <header>
+    <h1 id="heading">幸運を味わう — 旅の安全と長寿を願って。</h1>
+    <div class="sub" id="subtext">
+      沖縄発・幸運の和牛サンド｜SNS映えする日本のお守りデザインを作ってシェアしよう！
+      <strong>#wagyu_blessing</strong>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- 左：操作エリア -->
+    <section class="card panel">
+      <div class="controls">
+        <div class="row">
+          <label for="lang" id="label-lang">Language</label>
+          <select id="lang">
+            <option value="ja">日本語</option>
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+          </select>
+        </div>
+
+        <div class="row"><label for="name" id="label-name">お名前（任意）</label></div>
+        <div class="row">
+          <input id="name" type="text" maxlength="24" placeholder="Traveler" />
+        </div>
+
+        <div class="row"><label id="label-bg">背景カラー（SNS映え）</label></div>
+        <div id="palette" class="stack" aria-label="背景カラー"></div>
+
+        <div class="row" style="gap:8px">
+          <button class="btn" id="make" type="button">願いを込めて お守りを作る</button>
+          <button class="btn alt" id="save" type="button">PNGを保存</button>
+          <button class="btn alt" id="share" type="button">シェアする</button>
+        </div>
+
+        <p class="hint">
+          ※ お名前は保存しません。お守り画像の生成のみに使用します。
+        </p>
+      </div>
+    </section>
+
+    <!-- 右：プレビュー -->
+    <section class="card preview">
+      <canvas id="view" width="1200" height="1800" aria-label="お守りプレビュー"></canvas>
+    </section>
+  </main>
+
+  <div class="footer">
+    © Wagyu Blessing — Hashtag: <strong>#wagyu_blessing</strong>
+  </div>
 <script>
   // ===== DOM 取得 =====
   const canvas   = document.getElementById("view");
@@ -125,29 +266,6 @@
     },
   ];
 
-  // ===== レイアウト（言語ごとにサイズを変える） =====
-  const LAYOUT = {
-    ja: {
-      titleY: 750,
-      titleSize: 90,
-      subY: 845,
-      subSize: 44,
-    },
-    en: {
-      // 英語は横に長いので少し小さく
-      titleY: 740,
-      titleSize: 72,   // ★ここを小さめにして枠内に収める
-      subY: 830,
-      subSize: 40,
-    },
-    zh: {
-      titleY: 750,
-      titleSize: 80,
-      subY: 845,
-      subSize: 42,
-    },
-  };
-
   // ===== UIテキストを反映 =====
   function applyUILanguage() {
     const t = UI_I18N[currentLang];
@@ -214,17 +332,23 @@
     // お守り本体
     ctx.drawImage(base, 0, 0, W, H);
 
-    // 言語データ & レイアウト
+    // 言語データ
     const langData = I18N[currentLang] || I18N.ja;
-    const layout   = LAYOUT[currentLang] || LAYOUT.ja;
-
     const travelerName = (nameEl.value || "").trim() || langData.traveler;
 
+    // 言語ごとのサイズ調整（英語だけ少し小さく）
+    const isEn = currentLang === "en";
+
+    const titleSize = isEn ? 72 : 90;
+    const subSize   = isEn ? 40 : 44;
+    const titleY    = isEn ? 740 : 750;
+    const subY      = isEn ? 830 : 845;
+
     // タイトル
-    drawText(langData.title, W / 2, layout.titleY, layout.titleSize, "700");
+    drawText(langData.title, W / 2, titleY, titleSize, "700");
 
     // サブタイトル
-    drawText(langData.sub,   W / 2, layout.subY,   layout.subSize,   "600");
+    drawText(langData.sub,   W / 2, subY,   subSize,   "600");
 
     // Traveler（お名前）
     drawText(travelerName,        W / 2, 1516, 100, "700");
@@ -267,3 +391,5 @@
   applyUILanguage();
   buildPalette();
 </script>
+</body>
+</html>
