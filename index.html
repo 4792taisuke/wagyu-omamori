@@ -319,37 +319,33 @@ const BG_COLORS = [
   }
 
   // ===== メイン描画 =====
-  function draw() {
-    if (!baseLoaded) return;
+function draw() {
+  if (!baseLoaded) return;
 
-    const W = canvas.width;
-    const H = canvas.height;
+  const W = canvas.width;
+  const H = canvas.height;
 
-    // 背景色
-    ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = currentBg;
-    ctx.fillRect(0, 0, W, H);
+  // 背景色
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = currentBg;
+  ctx.fillRect(0, 0, W, H);
 
-    // お守り本体（高解像度ベース画像）
-    ctx.drawImage(base, 0, 0, W, H);
+  // お守り本体（高解像度ベース画像）
+  ctx.drawImage(base, 0, 0, W, H);
 
-    // テキスト
-　　const langData = I18N[currentLang] || I18N.ja;
-    const travelerName = (nameEl.value || "").trim() || langData.traveler;
+  // テキスト
+  const langData = I18N[currentLang] || I18N.ja;
+  const travelerName = (nameEl.value || "").trim() || langData.traveler;
 
-    // 位置は 1200x1800 前提で微調整しています
-  // タイトル：少し下へ（菊から余白をあける）
-drawText(langData.title,   W / 2,  750,  90, "700");
-
-// サブタイトル：タイトルのすぐ下に
-drawText(langData.sub,     W / 2,  850,  44, "600");
-
-// Traveler（お名前）：赤い帯の中央あたりに来るように下げる
-drawText(travelerName,     W / 2, 1516, 100, "700");
-
-// ハッシュタグ：Traveler の少し下、最下部寄り
-drawText("#wagyu_blessing",W / 2, 1618, 50, "600");
-  }
+  // タイトル
+  drawText(langData.title,   W / 2,  750,  90, "700");
+  // サブタイトル
+  drawText(langData.sub,     W / 2,  850,  44, "600");
+  // 名前（Traveler）
+  drawText(travelerName,     W / 2, 1516, 100, "700");
+  // ハッシュタグ
+  drawText("#wagyu_blessing", W / 2, 1618, 50, "600");
+}
 
   // ===== イベント設定 =====
   makeBtn.addEventListener("click", draw);
