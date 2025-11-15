@@ -84,13 +84,20 @@
       .wrap{grid-template-columns:1fr}
       canvas{width:min(96%,560px)}
     }
-    .hint{font-size:12px;opacity:.7;margin-top:-4px}
+    .hint{font-size:12px;opacity:.75;margin-top:-4px}
     .footer{padding:16px;text-align:center;opacity:.75}
 
-    /* 完成メッセージ用のフェード */
+    /* 完成メッセージ用 */
     #status{
-      transition: opacity 0.6s ease;
+      font-size:12px;
+      margin-top:4px;
+      color:#0f766e;
       opacity:0;
+      transition: opacity 0.7s ease;
+      min-height:1.2em;
+    }
+    #status.visible{
+      opacity:1;
     }
   </style>
 </head>
@@ -130,8 +137,8 @@
           <button class="btn alt" id="share" type="button">シェアする</button>
         </div>
 
-        <!-- 完成メッセージ表示場所 -->
-        <p id="status" class="hint"></p>
+        <!-- ここに「ふわっと」表示 -->
+        <p id="status"></p>
 
         <p class="hint">
           ※ お名前は保存しません。お守り画像の生成のみに使用します。
@@ -171,6 +178,7 @@
   // ===== グローバル状態 =====
   let currentLang = langEl.value;        // "ja" / "en" / "zh"
   let currentBg   = "#10b7b0";           // 初期ターコイズ
+  let statusTimer = null;
 
   // ===== 文字なしお守り画像 =====
   const base = new Image();
@@ -250,13 +258,13 @@
 
   // ===== 背景色候補 =====
   const BG_COLORS = [
-    { key: "deep",        color: "#0b3b5a", labels: { ja: "深い藍",   en: "Deep Indigo",  zh: "深靛蓝" } },
-    { key: "sakura",      color: "#f9c5cf", labels: { ja: "桜ピンク", en: "Sakura Pink",  zh: "樱花粉" } },
-    { key: "jade",        color: "#0f766e", labels: { ja: "翡翠グリーン", en: "Jade Green",   zh: "翡翠绿" } },
-    { key: "purple-gold", color: "#432f70", labels: { ja: "紫×金",   en: "Purple × Gold", zh: "紫×金" } },
-    { key: "ryukyu-blue", color: "#0077b6", labels: { ja: "琉球ブルー", en: "Ryukyu Blue",  zh: "琉球蓝" } },
+    { key: "deep",        color: "#0b3b5a", labels: { ja: "深い藍",     en: "Deep Indigo",   zh: "深靛蓝" } },
+    { key: "sakura",      color: "#f9c5cf", labels: { ja: "桜ピンク",   en: "Sakura Pink",   zh: "樱花粉" } },
+    { key: "jade",        color: "#0f766e", labels: { ja: "翡翠グリーン", en: "Jade Green",    zh: "翡翠绿" } },
+    { key: "purple-gold", color: "#432f70", labels: { ja: "紫×金",     en: "Purple × Gold", zh: "紫×金" } },
+    { key: "ryukyu-blue", color: "#0077b6", labels: { ja: "琉球ブルー", en: "Ryukyu Blue",   zh: "琉球蓝" } },
     { key: "sunset",      color: "#f97316", labels: { ja: "サンセット", en: "Sunset Orange", zh: "夕阳橙" } },
-    { key: "turquoise",   color: "#10b7b0", labels: { ja: "ターコイズ", en: "Turquoise",    zh: "绿松石色" } },
+    { key: "turquoise",   color: "#10b7b0", labels: { ja: "ターコイズ", en: "Turquoise",     zh: "绿松石色" } },
   ];
 
   // ===== UIテキストを反映 =====
@@ -273,10 +281,10 @@
     shareBtn.textContent  = t.btnShare;
     footerEl.innerHTML    = t.footer;
 
-    // 完成メッセージは言語切り替え時にリセット
+    // ステータスリセット
     if (statusEl){
       statusEl.textContent = "";
-      statusEl.style.opacity = 0;
+      statusEl.classList.remove("visible");
     }
   }
 
@@ -316,57 +324,48 @@
     ctx.restore();
   }
 
-  // ===== メイン描画 =====
+  // ===== お守り描画 =====
   function draw() {
     if (!baseLoaded) return;
 
     const W = canvas.width;
     const H = canvas.height;
 
-    // 背景色
     ctx.clearRect(0, 0, W, H);
     ctx.fillStyle = currentBg;
     ctx.fillRect(0, 0, W, H);
 
-    // お守り本体
     ctx.drawImage(base, 0, 0, W, H);
 
-    // 言語データ & レイアウト
     const langData = CANVAS_I18N[currentLang] || CANVAS_I18N.ja;
     const layout   = LAYOUT[currentLang]      || LAYOUT.ja;
 
     const travelerName = (nameEl.value || "").trim() || langData.traveler;
 
-    // タイトル
-    drawText(langData.title, W / 2, layout.titleY, layout.titleSize, "700");
-
-    // サブタイトル
-    drawText(langData.sub,   W / 2, layout.subY,   layout.subSize,   "600");
-
-    // Traveler（お名前）
-    drawText(travelerName,        W / 2, 1516, 100, "700");
-
-    // ハッシュタグ
-    drawText("#wagyu_blessing",   W / 2, 1618,  50, "600");
+    drawText(langData.title,        W / 2, layout.titleY, layout.titleSize, "700");
+    drawText(langData.sub,          W / 2, layout.subY,   layout.subSize,   "600");
+    drawText(travelerName,          W / 2, 1516,          100,              "700");
+    drawText("#wagyu_blessing",     W / 2, 1618,          50,               "600");
   }
 
-  // ===== イベント設定 =====
-  makeBtn.addEventListener("click", () => {
-    // お守りを再描画
-    draw();
-
-    // 完成メッセージを表示
+  // ===== 完成メッセージ表示 =====
+  function showStatus() {
     const t = UI_I18N[currentLang];
     if (!statusEl) return;
 
     statusEl.textContent = t.statusDone || "";
-    statusEl.style.opacity = 1;
+    statusEl.classList.add("visible");
 
-    // 2秒後にフェードアウト
-    clearTimeout(statusEl._timer);
-    statusEl._timer = setTimeout(() => {
-      statusEl.style.opacity = 0;
-    }, 2000);
+    if (statusTimer) clearTimeout(statusTimer);
+    statusTimer = setTimeout(() => {
+      statusEl.classList.remove("visible");
+    }, 2000); // 2秒後にフェードアウト
+  }
+
+  // ===== イベント設定 =====
+  makeBtn.addEventListener("click", () => {
+    draw();
+    showStatus();
   });
 
   langEl.addEventListener("change", () => {
