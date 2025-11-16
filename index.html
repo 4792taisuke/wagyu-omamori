@@ -327,9 +327,9 @@
     const count = 120; // 花びらの数
 
     for(let i=0; i<count; i++){
-      const delay = Math.random()*0.5; // 0〜0.5秒分くらい遅れて落ち始め
+      const delay = Math.random()*0.5; // 少しずつ落ち始めをずらす
 
-      const baseX = W/2 + (Math.random()*2-1)*W*0.45;
+      const baseX  = W/2 + (Math.random()*2-1)*W*0.45;
       const startY = -80 - Math.random()*120;
       const endY   = H + 90; // 画面の下より少し下
 
@@ -342,7 +342,7 @@
         swayPhase: Math.random()*Math.PI*2,
         rotSpeed: (Math.random()*2-1)*Math.PI*1.2,
         size: 6 + Math.random()*8,
-        delay,          // 落ち始めの遅れ
+        delay,
         x: baseX,
         y: startY,
         angle: 0,
@@ -352,36 +352,43 @@
     return list;
   }
 
+  // ★ここを修正：最後まで落ち続けながら、いちばん下でふわっと消える
   function updatePetals(globalT){
-    const W = canvas.width;
-    const H = canvas.height;
-
     petals.forEach(p=>{
-      // まだスタート前なら非表示
       if(globalT < p.delay){
         p.alpha = 0;
         return;
       }
 
-      // 0〜1 に正規化：globalT=1 のときは、必ず localT=1（＝全員ボトムまで到達）
-      const localT = (globalT - p.delay) / (1 - p.delay);
-      const fall   = Math.min(1, Math.max(0, localT));
-      const eased  = Math.pow(fall, 1.1); // 少しだけゆっくり目の落ち方
+      // 0〜1 に正規化（この花びらの「一生分」）
+      const raw  = (globalT - p.delay) / (1 - p.delay);
+      const fall = Math.min(1, Math.max(0, raw)); // 0〜1
+
+      // 縦方向：ほぼ等速で下へ
+      const eased = fall; // 固まらないように線形
 
       p.y = p.startY + (p.endY - p.startY)*eased;
-      p.x = p.baseX + Math.sin(eased*p.swayFreq*Math.PI*2 + p.swayPhase)*p.swayAmp;
-      p.angle = p.rotSpeed*eased;
 
-      // 透明度：アニメ全体の進行(globalT)で管理
-      // 0〜0.9 まではほぼ不透明、0.9〜1.0 でふわっと全員一緒に消える
-      let alphaBase = 0.95;
-      if(globalT <= 0.9){
-        p.alpha = alphaBase;
+      // 横ゆれ＋回転は fall を使って常にゆるく動かす
+      const swayT = fall;
+      p.x = p.baseX + Math.sin(swayT*p.swayFreq*Math.PI*2 + p.swayPhase)*p.swayAmp;
+      p.angle = p.rotSpeed * swayT;
+
+      // アルファ：最初に少しフェードイン → ほぼ不透明 → 下あたりでふわっと消える
+      let alphaBase;
+      if(fall < 0.1){
+        alphaBase = 0.95 * (fall / 0.1);     // 0〜0.1 でスッと現れる
       }else{
-        const fadeT = (globalT - 0.9) / 0.1; // 0〜1
-        const k = Math.min(1, Math.max(0, fadeT));
-        p.alpha = alphaBase * Math.pow(1 - k, 1.5);
+        alphaBase = 0.95;
       }
+
+      if(fall > 0.85){
+        const fadeT = (fall - 0.85) / 0.15;  // 0.85〜1.0 で消える
+        const k = Math.min(1, Math.max(0, fadeT));
+        alphaBase *= Math.pow(1 - k, 1.5);
+      }
+
+      p.alpha = alphaBase;
     });
   }
 
@@ -398,7 +405,7 @@
     ctx.fillRect(0,0,W,H);
 
     // ふわっとスケール
-    const scale = 1 + 0.18*Math.sin(globalT*Math.PI); // 1→1.18→1
+    const scale = 1 + 0.18*Math.sin(globalT*Math.PI);
 
     // 強めのフラッシュ（序盤）
     if(globalT < 0.45){
@@ -418,7 +425,7 @@
     drawBaseAndText();
     ctx.restore();
 
-    // 光のリング（菊の紋の周り）
+    // 光のリング
     const ringP = Math.min(1, Math.max(0,(globalT-0.1)/0.7));
     if(ringP > 0){
       const ringCx = W/2;
@@ -441,7 +448,7 @@
       ctx.restore();
     }
 
-    // 桜の描画
+    // 桜
     if(petals.length){
       ctx.save();
       petals.forEach(p=>{
@@ -476,7 +483,7 @@
     }
 
     petals = createPetals();
-    const duration = 3200; // 全体 3.2 秒
+    const duration = 3200; // 3.2 秒
     const start = performance.now();
 
     function frame(now){
@@ -488,7 +495,7 @@
         animId = requestAnimationFrame(frame);
       }else{
         animId = null;
-        drawStatic(); // 最後は静止画へ
+        drawStatic();
       }
     }
     animId = requestAnimationFrame(frame);
