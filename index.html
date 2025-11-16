@@ -170,7 +170,7 @@
 
   base.onload = () => {
     baseLoaded = true;
-    draw();
+    draw(); // 最初の1枚を自動生成
   };
 
   // ===== キャンバス上の文言 =====
@@ -229,7 +229,7 @@
     },
   };
 
-  // ===== 背景色候補（★ ミントグリーン追加） =====
+  // ===== 背景色候補（ミントグリーン追加） =====
   const BG_COLORS = [
     {
       key: "deep",
@@ -332,10 +332,10 @@
     target.classList.add("active");
 
     currentBg = target.dataset.color;
-    draw();
+    // ★ この時点では描画しない（ボタンを押したときにだけ生成）
   });
 
-  // ===== キャンバスに文字を描くヘルパー =====
+  // ===== テキスト描画ヘルパー =====
   function drawText(text, x, y, size, weight) {
     ctx.save();
     ctx.font = `${weight} ${size}px "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif`;
@@ -380,14 +380,18 @@
   }
 
   // ===== イベント設定 =====
+  // 「願いを込めて お守りを作る」を押した時だけ描画
   makeBtn.addEventListener("click", draw);
+
   langEl.addEventListener("change", () => {
     currentLang = langEl.value;
     applyUILanguage();
     buildPalette();
-    draw();
+    // キャンバスは次にボタンを押したタイミングで更新
   });
-  nameEl.addEventListener("input", draw);
+
+  // 名前入力も、ボタンを押すまではキャンバスに反映しない
+  // nameEl.addEventListener("input", draw); ← あえて付けない
 
   // PNG保存
   saveBtn.addEventListener("click", () => {
