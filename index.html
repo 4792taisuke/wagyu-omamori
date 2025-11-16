@@ -168,13 +168,13 @@
 
   // ===== ベース画像 =====
   const base = new Image();
-  base.src = "omamori_base.png";   // 文字なし・1枚のお守りPNG
+  base.src = "omamori_base.png";
   base.onload = () => {
     baseLoaded = true;
     drawStatic();
   };
 
-  // ===== キャンバスの文言 =====
+  // ===== キャンバス上のテキスト =====
   const I18N = {
     ja: {
       title: "旅のお守り",
@@ -199,7 +199,7 @@
     zh: { titleY: 750, titleSize: 80, subY: 850, subSize: 42 },
   };
 
-  // ===== UIテキスト =====
+  // ===== UI テキスト =====
   const UI_I18N = {
     ja: {
       heading:  "幸運を味わう — 旅の安全と長寿を願って。",
@@ -236,7 +236,7 @@
     },
   };
 
-  // ===== 背景色 =====
+  // ===== 背景色候補 =====
   const BG_COLORS = [
     { key:"deep",        color:"#0b3b5a", labels:{ja:"深い藍",        en:"Deep Indigo",   zh:"深靛蓝"} },
     { key:"sakura",      color:"#f9c5cf", labels:{ja:"桜ピンク",      en:"Sakura Pink",   zh:"樱花粉"} },
@@ -248,7 +248,7 @@
     { key:"golden-hour", color:"#fad643", labels:{ja:"ゴールデンアワー", en:"Golden Hour",  zh:"金色黄昏"} },
   ];
 
-  // ===== UI =====
+  // ===== UI適用 =====
   function applyUILanguage(){
     const t = UI_I18N[currentLang];
     headingEl.textContent = t.heading;
@@ -267,7 +267,7 @@
     BG_COLORS.forEach(c=>{
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "chip" + (c.color===currentBg ? " active" : "");
+      btn.className = "chip" + (c.color === currentBg ? " active" : "");
       btn.dataset.color = c.color;
       btn.textContent = c.labels[currentLang];
       paletteEl.appendChild(btn);
@@ -319,18 +319,19 @@
     drawBaseAndText();
   }
 
-  // ===== 桜エフェクト =====
+  // ===== 桜パーティクル =====
   function createPetals(){
     const W = canvas.width;
     const H = canvas.height;
     const list = [];
-    const count = 120;   // かなり多め
+    const count = 120; // 花びらの数
 
-    for(let i=0;i<count;i++){
-      const startOffset = Math.random()*0.5; // 少し時間差で落ち始め
+    for(let i=0; i<count; i++){
+      const delay = Math.random()*0.5; // 0〜0.5秒分くらい遅れて落ち始め
+
       const baseX = W/2 + (Math.random()*2-1)*W*0.45;
       const startY = -80 - Math.random()*120;
-      const endY   = H + 90;  // 画面最下より少し下まで
+      const endY   = H + 90; // 画面の下より少し下
 
       list.push({
         baseX,
@@ -341,46 +342,50 @@
         swayPhase: Math.random()*Math.PI*2,
         rotSpeed: (Math.random()*2-1)*Math.PI*1.2,
         size: 6 + Math.random()*8,
-        lifeStart: startOffset,
-        lifeEnd:   startOffset + 1.0 + Math.random()*0.3, // 長めに存在
+        delay,          // 落ち始めの遅れ
         x: baseX,
         y: startY,
         angle: 0,
-        alpha: 1,
+        alpha: 0,
       });
     }
     return list;
   }
 
   function updatePetals(globalT){
+    const W = canvas.width;
+    const H = canvas.height;
+
     petals.forEach(p=>{
-      const t = (globalT - p.lifeStart)/(p.lifeEnd - p.lifeStart);
-      if(t <= 0){
+      // まだスタート前なら非表示
+      if(globalT < p.delay){
         p.alpha = 0;
         return;
       }
-      const clamped = Math.min(1, Math.max(0, t));
 
-      // 落ちる進行度：ほぼ 0〜1 まで使う（ゆっくり＆最後に加速）
-      const fall = Math.pow(clamped, 1.1); // 1.1 で少しゆっくりめ
+      // 0〜1 に正規化：globalT=1 のときは、必ず localT=1（＝全員ボトムまで到達）
+      const localT = (globalT - p.delay) / (1 - p.delay);
+      const fall   = Math.min(1, Math.max(0, localT));
+      const eased  = Math.pow(fall, 1.1); // 少しだけゆっくり目の落ち方
 
-      // 位置
-      p.y = p.startY + (p.endY - p.startY)*fall;
-      p.x = p.baseX + Math.sin(fall*p.swayFreq*Math.PI*2 + p.swayPhase)*p.swayAmp;
-      p.angle = p.rotSpeed*fall;
+      p.y = p.startY + (p.endY - p.startY)*eased;
+      p.x = p.baseX + Math.sin(eased*p.swayFreq*Math.PI*2 + p.swayPhase)*p.swayAmp;
+      p.angle = p.rotSpeed*eased;
 
-      // アルファ：下の方までしっかり見えて、最後だけスッと消える
-      const fadeStart = 0.9; // fall が 90% まではほぼ不透明
-      if(fall < fadeStart){
-        p.alpha = 0.95;
+      // 透明度：アニメ全体の進行(globalT)で管理
+      // 0〜0.9 まではほぼ不透明、0.9〜1.0 でふわっと全員一緒に消える
+      let alphaBase = 0.95;
+      if(globalT <= 0.9){
+        p.alpha = alphaBase;
       }else{
-        const k = (fall - fadeStart)/(1 - fadeStart); // 0〜1
-        p.alpha = 0.95 * Math.pow(1 - k, 1.5);
+        const fadeT = (globalT - 0.9) / 0.1; // 0〜1
+        const k = Math.min(1, Math.max(0, fadeT));
+        p.alpha = alphaBase * Math.pow(1 - k, 1.5);
       }
     });
   }
 
-  // ===== アニメーション１フレーム =====
+  // ===== 1フレーム描画 =====
   function drawAnimationFrame(globalT){
     if(!baseLoaded) return;
     const W = canvas.width;
@@ -395,7 +400,7 @@
     // ふわっとスケール
     const scale = 1 + 0.18*Math.sin(globalT*Math.PI); // 1→1.18→1
 
-    // 強いフラッシュ（序盤）
+    // 強めのフラッシュ（序盤）
     if(globalT < 0.45){
       const k = 1 - globalT/0.45;
       ctx.save();
@@ -413,7 +418,7 @@
     drawBaseAndText();
     ctx.restore();
 
-    // 光のリング（菊の周り）
+    // 光のリング（菊の紋の周り）
     const ringP = Math.min(1, Math.max(0,(globalT-0.1)/0.7));
     if(ringP > 0){
       const ringCx = W/2;
@@ -436,7 +441,7 @@
       ctx.restore();
     }
 
-    // 桜
+    // 桜の描画
     if(petals.length){
       ctx.save();
       petals.forEach(p=>{
@@ -471,7 +476,7 @@
     }
 
     petals = createPetals();
-    const duration = 3200; // ★ゆっくり目に 3.2 秒へ
+    const duration = 3200; // 全体 3.2 秒
     const start = performance.now();
 
     function frame(now){
