@@ -9,7 +9,11 @@
     :root{
       --bg: #10b7b0;
       --ink: #0f2b2e;
+      --omamori: #b91c1c;
       --panel: #f5e7c4;
+      --outline: #111111;
+      --gold: #f6d889;
+      --gold-dark: #d8b86a;
       --btn: #125a5a;
     }
     html,body{height:100%}
@@ -55,18 +59,18 @@
     .btn.alt{background:#fff;border:1px solid var(--btn);color:var(--btn)}
     .stack{display:flex;flex-wrap:wrap;gap:10px}
     .chip{
-      padding:10px 18px;
+      padding:8px 18px;
       border-radius:999px;
       border:1px solid #0002;
       background:#fff;
       cursor:pointer;
       user-select:none;
-      font-weight:600;
-      transition: transform .1s ease, box-shadow .1s ease, opacity .2s ease;
+      white-space:nowrap;
     }
     .chip.active{
-      box-shadow:0 0 0 2px #0f766e99;
-      transform:translateY(-1px);
+      background:#0f766e;
+      color:#fff;
+      border-color:#0f766e;
     }
     .preview{display:grid;place-items:center;padding:10px}
     canvas{
@@ -83,28 +87,6 @@
     }
     .hint{font-size:12px;opacity:.7;margin-top:-4px}
     .footer{padding:16px;text-align:center;opacity:.75}
-
-    /* トースト（ふわっと出て2秒で消えるメッセージ） */
-    .toast{
-      position:fixed;
-      left:50%;
-      bottom:24px;
-      transform:translate(-50%,20px);
-      background:rgba(15,118,110,.95);
-      color:#fff;
-      padding:10px 18px;
-      border-radius:999px;
-      font-size:14px;
-      opacity:0;
-      pointer-events:none;
-      transition:opacity .3s ease, transform .3s ease;
-      z-index:50;
-      white-space:nowrap;
-    }
-    .toast.show{
-      opacity:1;
-      transform:translate(-50%,0);
-    }
   </style>
 </head>
 <body>
@@ -159,13 +141,7 @@
     © Wagyu Blessing — Hashtag: <strong>#wagyu_blessing</strong>
   </div>
 
-  <!-- トースト表示用 -->
-  <div id="toast" class="toast" aria-live="polite"></div>
-
 <script>
-  // ===== 設定（ここのアカウントだけお店用に変えてください） =====
-  const SOCIAL_HANDLE = "@wagyu_blessing";
-
   // ===== DOM 取得 =====
   const canvas   = document.getElementById("view");
   const ctx      = canvas.getContext("2d");
@@ -182,9 +158,6 @@
   const labelName = document.getElementById("label-name");
   const labelBg   = document.getElementById("label-bg");
   const footerEl  = document.querySelector(".footer");
-  const toastEl   = document.getElementById("toast");
-
-  let toastTimer = null;
 
   // ===== グローバル状態 =====
   let currentLang = langEl.value;        // "ja" / "en" / "zh"
@@ -192,7 +165,7 @@
 
   // ===== 文字なしお守り画像 =====
   const base = new Image();
-  base.src = "omamori_base.png";         // 同じフォルダにあるPNG
+  base.src = "omamori_base.png";         // 同じフォルダに置いた高解像度ベース
   let baseLoaded = false;
 
   base.onload = () => {
@@ -203,102 +176,129 @@
   // ===== キャンバス上の文言 =====
   const CANVAS_I18N = {
     ja: {
-      title:    "旅のお守り",
-      sub:      "安全な旅路と長寿を祈って",
+      title: "旅のお守り",
+      sub:   "安全な旅路と長寿を祈って",
       traveler: "Traveler",
     },
     en: {
-      title:    "Travel Blessing Charm",
-      sub:      "For Safe Journeys & Long Life",
+      title: "Travel Blessing Charm",
+      sub:   "For Safe Journeys & Long Life",
       traveler: "Traveler",
     },
     zh: {
-      title:    "祈福护身符",
-      sub:      "旅途平安 · 长命百岁",
+      title: "祈福护身符",
+      sub:   "旅途平安 · 长命百岁",
       traveler: "Traveler",
     },
-  };
-
-  // 言語別レイアウト（英語だけフォント小さめ）
-  const LAYOUT = {
-    ja: { titleY: 720, subY: 820, titleSize: 82, subSize: 40 },
-    en: { titleY: 720, subY: 820, titleSize: 70, subSize: 38 },
-    zh: { titleY: 720, subY: 820, titleSize: 80, subSize: 40 },
   };
 
   // ===== UI の文言 =====
   const UI_I18N = {
     ja: {
-      heading:   "幸運を味わう — 旅の安全と長寿を願って。",
-      sub:       "沖縄発・幸運の和牛サンド｜SNS映えする日本のお守りデザインを作ってシェアしよう！",
-      labelLang: "Language",
-      labelName: "お名前（任意）",
-      labelBg:   "背景カラー（SNS映え）",
-      btnMake:   "願いを込めて お守りを作る",
-      btnSave:   "PNGを保存",
-      btnShare:  "シェアする",
-      footer:    "© Wagyu Blessing — Hashtag: <strong>#wagyu_blessing</strong>",
-      toastCreate: "お守りができました！SNSでシェアしてみましょう。",
-      toastShareCopied: "シェア用テキストをコピーしました。SNSに貼り付けてください。",
+      heading:  "幸運を味わう — 旅の安全と長寿を願って。",
+      sub:      "沖縄発・幸運の和牛サンド｜SNS映えする日本のお守りデザインを作ってシェアしよう！",
+      labelLang:"Language",
+      labelName:"お名前（任意）",
+      labelBg:  "背景カラー（SNS映え）",
+      btnMake:  "願いを込めて お守りを作る",
+      btnSave:  "PNGを保存",
+      btnShare: "シェアする",
+      footer:   "© Wagyu Blessing — Hashtag: <strong>#wagyu_blessing</strong>",
     },
     en: {
-      heading:   "Taste Good Fortune – Wishing You Safe Travels and Long Life.",
-      sub:       "From Okinawa: Wagyu Lucky Sandwich | Create a Japanese omamori-style design and share it on SNS!",
-      labelLang: "Language",
-      labelName: "Name (optional)",
-      labelBg:   "Background color (for SNS)",
-      btnMake:   "Create my amulet",
-      btnSave:   "Save PNG",
-      btnShare:  "Share",
-      footer:    "© Wagyu Blessing — Hashtag: <strong>#wagyu_blessing</strong>",
-      toastCreate: "Your charm is ready! Share it with #wagyu_blessing",
-      toastShareCopied: "Share text copied! Paste it into your SNS ✨",
+      heading:  "Taste Good Fortune – Wishing You Safe Travels and Long Life.",
+      sub:      "From Okinawa: Wagyu Lucky Sandwich | Create a Japanese omamori-style design and share it on SNS!",
+      labelLang:"Language",
+      labelName:"Name (optional)",
+      labelBg:  "Background color (for SNS)",
+      btnMake:  "Create my amulet",
+      btnSave:  "Save PNG",
+      btnShare: "Share",
+      footer:   "© Wagyu Blessing — Hashtag: <strong>#wagyu_blessing</strong>",
     },
     zh: {
-      heading:   "品尝幸运 —— 祝您旅途平安、长命百岁。",
-      sub:       "来自冲绳的和牛幸运三明治｜制作日本御守风格的设计并分享到 SNS！",
-      labelLang: "语言",
-      labelName: "姓名（可选）",
-      labelBg:   "背景颜色（适合 SNS）",
-      btnMake:   "祈愿并生成护身符",
-      btnSave:   "保存 PNG",
-      btnShare:  "分享",
-      footer:    "© Wagyu Blessing — 话题标签：<strong>#wagyu_blessing</strong>",
-      toastCreate: "护身符已生成！快用 #wagyu_blessing 分享吧。",
-      toastShareCopied: "分享文本已复制，直接粘贴到 SNS 即可 ✨",
+      heading:  "品尝幸运 —— 祝您旅途平安、长命百岁。",
+      sub:      "来自冲绳的和牛幸运三明治｜制作日本御守风格的设计并分享到 SNS！",
+      labelLang:"语言",
+      labelName:"姓名（可选）",
+      labelBg:  "背景颜色（适合 SNS）",
+      btnMake:  "祈愿并生成护身符",
+      btnSave:  "保存 PNG",
+      btnShare: "分享",
+      footer:   "© Wagyu Blessing — 话题标签：<strong>#wagyu_blessing</strong>",
     },
   };
 
-  // ===== シェア用テキスト =====
-  const SHARE_TEXT = {
-    ja:
-`沖縄で「旅のお守り（Travel Blessing Charm）」をつくりました！
-Safe journeys & long life ✨
-#wagyu_blessing ${SOCIAL_HANDLE}`,
-    en:
-`I got my “Travel Blessing Charm” in Okinawa!
-Safe journeys & long life ✨
-#wagyu_blessing ${SOCIAL_HANDLE}`,
-    zh:
-`我在冲绳制作了旅途平安御守！
-祝旅途平安、长命百岁 ✨
-#wagyu_blessing ${SOCIAL_HANDLE}`,
-  };
-
-  // ===== 背景色候補 =====
+  // ===== 背景色候補（★ ミントグリーン追加） =====
   const BG_COLORS = [
-    { key:"deep",        color:"#0b3b5a", labels:{ ja:"深い藍",    en:"Deep Indigo",    zh:"深靛蓝" } },
-    { key:"sakura",      color:"#f9c5cf", labels:{ ja:"桜ピンク",  en:"Sakura Pink",    zh:"樱花粉" } },
-    { key:"jade",        color:"#0f766e", labels:{ ja:"翡翠グリーン",en:"Jade Green",   zh:"翡翠绿" } },
-    { key:"purple-gold", color:"#432f70", labels:{ ja:"紫×金",     en:"Purple × Gold",   zh:"紫×金" } },
-    { key:"ryukyu-blue", color:"#0077b6", labels:{ ja:"琉球ブルー", en:"Ryukyu Blue",    zh:"琉球蓝" } },
-    { key:"sunset",      color:"#f97316", labels:{ ja:"サンセット", en:"Sunset Orange",  zh:"夕阳橙" } },
-    { key:"turquoise",   color:"#10b7b0", labels:{ ja:"ターコイズ", en:"Turquoise",      zh:"绿松石色" } },
+    {
+      key: "deep",
+      color: "#0b3b5a",
+      labels: { ja: "深い藍", en: "Deep Indigo", zh: "深靛蓝" },
+    },
+    {
+      key: "sakura",
+      color: "#f9c5cf",
+      labels: { ja: "桜ピンク", en: "Sakura Pink", zh: "樱花粉" },
+    },
+    {
+      key: "jade",
+      color: "#0f766e",
+      labels: { ja: "翡翠グリーン", en: "Jade Green", zh: "翡翠绿" },
+    },
+    {
+      key: "purple-gold",
+      color: "#432f70",
+      labels: { ja: "紫×金", en: "Purple × Gold", zh: "紫×金" },
+    },
+    {
+      key: "ryukyu-blue",
+      color: "#0077b6",
+      labels: { ja: "琉球ブルー", en: "Ryukyu Blue", zh: "琉球蓝" },
+    },
+    {
+      key: "sunset",
+      color: "#f97316",
+      labels: { ja: "サンセット", en: "Sunset Orange", zh: "夕阳橙" },
+    },
+    {
+      key: "turquoise",
+      color: "#10b7b0",
+      labels: { ja: "ターコイズ", en: "Turquoise", zh: "绿松石色" },
+    },
+    {
+      key: "mint",
+      color: "#22c55e",
+      labels: { ja: "ミントグリーン", en: "Mint Green", zh: "薄荷绿" },
+    },
   ];
+
+  // ===== 言語別レイアウト（英語だけ少し小さめ＆下げる） =====
+  const LAYOUT = {
+    ja: {
+      titleY: 750,
+      titleSize: 90,
+      subY: 850,
+      subSize: 44,
+    },
+    en: {
+      titleY: 760,
+      titleSize: 80,
+      subY: 855,
+      subSize: 40,
+    },
+    zh: {
+      titleY: 750,
+      titleSize: 90,
+      subY: 850,
+      subSize: 44,
+    },
+  };
 
   // ===== UIテキストを反映 =====
   function applyUILanguage() {
     const t = UI_I18N[currentLang];
+
     headingEl.textContent = t.heading;
     subEl.innerHTML       = `${t.sub} <strong>#wagyu_blessing</strong>`;
     labelLang.textContent = t.labelLang;
@@ -319,25 +319,8 @@ Safe journeys & long life ✨
       btn.className = "chip" + (c.color === currentBg ? " active" : "");
       btn.dataset.color = c.color;
       btn.textContent   = c.labels[currentLang];
-
-      // ボタン自体の色
-      btn.style.backgroundColor = c.color;
-      // 明度に応じて文字色を変える（ざっくり）
-      const rgb = hexToRgb(c.color);
-      const luminance = (0.299*rgb.r + 0.587*rgb.g + 0.114*rgb.b);
-      btn.style.color = luminance > 170 ? "#222" : "#fff";
-
       paletteEl.appendChild(btn);
     });
-  }
-
-  function hexToRgb(hex){
-    const v = hex.replace("#","");
-    const bigint = parseInt(v,16);
-    if (v.length === 6){
-      return { r:(bigint>>16)&255, g:(bigint>>8)&255, b:bigint&255 };
-    }
-    return { r:0,g:0,b:0 };
   }
 
   // 背景色ボタンクリック
@@ -363,17 +346,6 @@ Safe journeys & long life ✨
     ctx.restore();
   }
 
-  // ===== トースト表示 =====
-  function showToast(message){
-    if (!toastEl) return;
-    toastEl.textContent = message;
-    toastEl.classList.add("show");
-    if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(()=>{
-      toastEl.classList.remove("show");
-    }, 2000);
-  }
-
   // ===== メイン描画 =====
   function draw() {
     if (!baseLoaded) return;
@@ -389,34 +361,32 @@ Safe journeys & long life ✨
     // お守り本体
     ctx.drawImage(base, 0, 0, W, H);
 
+    // 言語データ & レイアウト
     const langData = CANVAS_I18N[currentLang] || CANVAS_I18N.ja;
     const layout   = LAYOUT[currentLang] || LAYOUT.ja;
     const travelerName = (nameEl.value || "").trim() || langData.traveler;
 
     // タイトル
     drawText(langData.title, W / 2, layout.titleY, layout.titleSize, "700");
+
     // サブタイトル
     drawText(langData.sub,   W / 2, layout.subY,   layout.subSize,   "600");
-    // Traveler（名前）
+
+    // Traveler（お名前）
     drawText(travelerName,        W / 2, 1516, 100, "700");
+
     // ハッシュタグ
     drawText("#wagyu_blessing",   W / 2, 1618, 50,  "600");
   }
 
   // ===== イベント設定 =====
-  makeBtn.addEventListener("click", () => {
-    draw();
-    const t = UI_I18N[currentLang] || UI_I18N.ja;
-    showToast(t.toastCreate);
-  });
-
+  makeBtn.addEventListener("click", draw);
   langEl.addEventListener("change", () => {
     currentLang = langEl.value;
     applyUILanguage();
     buildPalette();
     draw();
   });
-
   nameEl.addEventListener("input", draw);
 
   // PNG保存
@@ -430,16 +400,12 @@ Safe journeys & long life ✨
 
   // シェア
   shareBtn.addEventListener("click", () => {
-    const text = SHARE_TEXT[currentLang] || SHARE_TEXT.en;
+    const tag = "#wagyu_blessing";
     if (navigator.share) {
-      navigator.share({ text });
+      navigator.share({ text: tag });
     } else if (navigator.clipboard) {
-      navigator.clipboard.writeText(text).then(()=>{
-        const t = UI_I18N[currentLang] || UI_I18N.ja;
-        showToast(t.toastShareCopied);
-      });
-    } else {
-      alert(text);
+      navigator.clipboard.writeText(tag);
+      alert("ハッシュタグ " + tag + " をコピーしました。");
     }
   });
 
