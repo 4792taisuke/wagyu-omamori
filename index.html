@@ -297,7 +297,7 @@
       color: "#fad643",
       labels: { ja: "ゴールデンアワー", en: "Golden Hour", zh: "金色黄昏" },
     },
-  ];
+  };
 
   // ===== UIテキストを反映 =====
   function applyUILanguage() {
@@ -483,16 +483,16 @@
     drawFrame(1, 0, []);
   }
 
-  // ===== 桜の花びらを初期化（たっぷり＆ランダム） =====
+  // ===== 桜の花びらを初期化（たっぷり＆ランダム・少しゆっくり） =====
   function createPetals() {
     const W = canvas.width;
     const H = canvas.height;
     const list = [];
-    const count = 120; // 5倍に増量
+    const count = 120; // たっぷり
 
     for (let i = 0; i < count; i++) {
       const spreadX   = W * 0.45;                     // 左右に広く散らす
-      const speed     = 0.6 + Math.random() * 0.8;    // 落ちる速さ（花びらごとに）
+      const speed     = 0.5 + Math.random() * 0.6;    // ★ 少し遅めのレンジに調整
       const swayAmp   = 30 + Math.random() * 40;      // 左右の揺れ幅
       const swayFreq  = 1.5 + Math.random() * 2.0;    // 揺れの速さ
       const rotateSpd = (Math.random() * 2 - 1) * Math.PI * 1.4; // ゆっくり回転
@@ -501,7 +501,7 @@
         x0: W / 2 + (Math.random() * 2 - 1) * spreadX,       // 中央から左右へ
         y0: H * (0.0 + Math.random() * 0.15),                // 画面最上部付近から出現
         driftX: (Math.random() * 2 - 1) * W * 0.25,          // 風に流される量
-        fall: H * (0.7 + Math.random() * 0.5),               // 下までふわっと
+        fall: H * (0.9 + Math.random() * 0.4),               // ★ ほぼ最下までゆっくり
         size: 6 + Math.random() * 6,
         baseAngle: Math.random() * Math.PI * 2,
         angle: 0,
@@ -520,7 +520,7 @@
   function updatePetals(t) {
     petals.forEach(p => {
       const localT = Math.min(1, t * p.speed);       // 花びらごとに進行速度を変える
-      const easeFall = 0.1 + 0.9 * (localT * localT); // 最初ゆっくり→少しだけ加速
+      const easeFall = 0.1 + 0.9 * (localT * localT); // ゆっくり→少しだけ加速
 
       p.x = p.x0
           + p.driftX * localT
@@ -537,7 +537,7 @@
   function startBlessingAnimation() {
     if (!baseLoaded) return;
 
-    const duration = 1800; // ms（少し長くして「ゆっくり感」UP）
+    const duration = 2800; // ★ 1.8秒 → 2.8秒 にして全体をゆっくりに
     const start    = performance.now();
 
     // 新しい花びらを生成
