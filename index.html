@@ -87,6 +87,26 @@
     }
     .hint{font-size:12px;opacity:.7;margin-top:-4px}
     .footer{padding:16px;text-align:center;opacity:.75}
+
+    /* トーストメッセージ */
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:24px;
+      transform:translateX(-50%);
+      background:#125a5a;
+      color:#fff;
+      padding:10px 16px;
+      border-radius:999px;
+      font-size:14px;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .25s ease;
+      z-index:50;
+    }
+    .toast.show{
+      opacity:1;
+    }
   </style>
 </head>
 <body>
@@ -141,6 +161,9 @@
     © Wagyu Blessing — Hashtag: <strong>#wagyu_blessing</strong>
   </div>
 
+  <!-- トースト -->
+  <div id="toast" class="toast"></div>
+
 <script>
   // ===== DOM 取得 =====
   const canvas   = document.getElementById("view");
@@ -151,6 +174,7 @@
   const saveBtn  = document.getElementById("save");
   const shareBtn = document.getElementById("share");
   const paletteEl= document.getElementById("palette");
+  const toastEl  = document.getElementById("toast");
 
   const headingEl = document.getElementById("heading");
   const subEl     = document.getElementById("subtext");
@@ -204,6 +228,7 @@
       btnSave:  "PNGを保存",
       btnShare: "シェアする",
       footer:   "© Wagyu Blessing — Hashtag: <strong>#wagyu_blessing</strong>",
+      toast:    "お守りに願いを込めました ✨",
     },
     en: {
       heading:  "Taste Good Fortune – Wishing You Safe Travels and Long Life.",
@@ -215,6 +240,7 @@
       btnSave:  "Save PNG",
       btnShare: "Share",
       footer:   "© Wagyu Blessing — Hashtag: <strong>#wagyu_blessing</strong>",
+      toast:    "Your blessing has been placed ✨",
     },
     zh: {
       heading:  "品尝幸运 —— 祝您旅途平安、长命百岁。",
@@ -226,10 +252,11 @@
       btnSave:  "保存 PNG",
       btnShare: "分享",
       footer:   "© Wagyu Blessing — 话题标签：<strong>#wagyu_blessing</strong>",
+      toast:    "已经为护身符注入祈愿 ✨",
     },
   };
 
-  // ===== 背景色候補（ミントグリーン追加） =====
+  // ===== 背景色候補 =====
   const BG_COLORS = [
     {
       key: "deep",
@@ -273,7 +300,7 @@
     },
   ];
 
-  // ===== 言語別レイアウト（英語だけ少し小さめ＆下げる） =====
+  // ===== 言語別レイアウト =====
   const LAYOUT = {
     ja: {
       titleY: 750,
@@ -283,7 +310,7 @@
     },
     en: {
       titleY: 760,
-      titleSize: 80,
+      titleSize: 80,  // 日本語より少し小さめ
       subY: 855,
       subSize: 40,
     },
@@ -323,7 +350,7 @@
     });
   }
 
-  // 背景色ボタンクリック
+  // 背景色ボタンクリック → 即描画
   paletteEl.addEventListener("click", (e) => {
     const target = e.target;
     if (!target.classList.contains("chip")) return;
@@ -332,7 +359,7 @@
     target.classList.add("active");
 
     currentBg = target.dataset.color;
-    // ★ この時点では描画しない（ボタンを押したときにだけ生成）
+    draw();
   });
 
   // ===== テキスト描画ヘルパー =====
@@ -379,19 +406,32 @@
     drawText("#wagyu_blessing",   W / 2, 1618, 50,  "600");
   }
 
+  // ===== トースト表示 =====
+  function showToast() {
+    const msg = UI_I18N[currentLang].toast;
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    setTimeout(() => {
+      toastEl.classList.remove("show");
+    }, 1500);
+  }
+
   // ===== イベント設定 =====
-  // 「願いを込めて お守りを作る」を押した時だけ描画
-  makeBtn.addEventListener("click", draw);
+  // ボタン：最新状態で描き直し＋トースト
+  makeBtn.addEventListener("click", () => {
+    draw();
+    showToast();
+  });
 
   langEl.addEventListener("change", () => {
     currentLang = langEl.value;
     applyUILanguage();
     buildPalette();
-    // キャンバスは次にボタンを押したタイミングで更新
+    draw();
   });
 
-  // 名前入力も、ボタンを押すまではキャンバスに反映しない
-  // nameEl.addEventListener("input", draw); ← あえて付けない
+  // 名前入力はリアルタイム反映
+  nameEl.addEventListener("input", draw);
 
   // PNG保存
   saveBtn.addEventListener("click", () => {
