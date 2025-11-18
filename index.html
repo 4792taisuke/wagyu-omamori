@@ -9,11 +9,7 @@
     :root{
       --bg: #10b7b0;
       --ink: #0f2b2e;
-      --omamori: #b91c1c;
       --panel: #f5e7c4;
-      --outline: #111111;
-      --gold: #f6d889;
-      --gold-dark: #d8b86a;
       --btn: #125a5a;
     }
     html,body{height:100%}
@@ -59,18 +55,24 @@
     .btn.alt{background:#fff;border:1px solid var(--btn);color:var(--btn)}
     .stack{display:flex;flex-wrap:wrap;gap:10px}
     .chip{
-      padding:8px 18px;
+      padding:10px 18px;
       border-radius:999px;
-      border:1px solid #0002;
+      border:1px solid #0003;
       background:#fff;
       cursor:pointer;
       user-select:none;
-      white-space:nowrap;
+      min-width:90px;
+      text-align:center;
+      box-shadow:0 2px 4px #0002;
+      transition:transform .08s ease, box-shadow .08s ease, filter .08s ease;
     }
     .chip.active{
-      background:#0f766e;
-      color:#fff;
-      border-color:#0f766e;
+      box-shadow:0 0 0 3px #0f766e88;
+      transform:translateY(-1px);
+    }
+    .chip:active{
+      transform:scale(.96);
+      box-shadow:0 1px 2px #0003;
     }
     .preview{display:grid;place-items:center;padding:10px}
     canvas{
@@ -87,6 +89,28 @@
     }
     .hint{font-size:12px;opacity:.7;margin-top:-4px}
     .footer{padding:16px;text-align:center;opacity:.75}
+
+    /* トースト（小さなメッセージ） */
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:24px;
+      transform:translateX(-50%) translateY(16px);
+      padding:10px 18px;
+      border-radius:999px;
+      background:rgba(15,46,60,.94);
+      color:#fff;
+      font-size:14px;
+      box-shadow:0 10px 24px #0005;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .25s ease, transform .25s ease;
+      z-index:50;
+    }
+    .toast.show{
+      opacity:1;
+      transform:translateX(-50%) translateY(0);
+    }
   </style>
 </head>
 <body>
@@ -141,8 +165,11 @@
     © Wagyu Blessing — Hashtag: <strong>#wagyu_blessing</strong>
   </div>
 
+  <!-- トースト -->
+  <div id="toast" class="toast">✨お守りに願いを込めました ✨</div>
+
 <script>
-  // ===== DOM =====
+  // ===== DOM 取得 =====
   const canvas   = document.getElementById("view");
   const ctx      = canvas.getContext("2d");
   const langEl   = document.getElementById("lang");
@@ -151,6 +178,7 @@
   const saveBtn  = document.getElementById("save");
   const shareBtn = document.getElementById("share");
   const paletteEl= document.getElementById("palette");
+  const toastEl  = document.getElementById("toast");
 
   const headingEl = document.getElementById("heading");
   const subEl     = document.getElementById("subtext");
@@ -159,26 +187,31 @@
   const labelBg   = document.getElementById("label-bg");
   const footerEl  = document.querySelector(".footer");
 
+  // ===== グローバル状態 =====
   let currentLang = langEl.value;        // "ja" / "en" / "zh"
   let currentBg   = "#10b7b0";           // 初期ターコイズ
-  let baseLoaded  = false;
 
-  let animId  = null;
-  let petals  = [];
+  // アニメーション用
+  let animating = false;
+  let animStart = 0;
+  let petals = [];
+  let ring = null;
 
-  // ===== ベース画像 =====
+  // ===== 文字なしお守り画像 =====
   const base = new Image();
-  base.src = "omamori_base.png";
+  base.src = "omamori_base.png";   // 既にアップしてある文字なしPNG
+  let baseLoaded = false;
+
   base.onload = () => {
     baseLoaded = true;
     drawStatic();
   };
 
   // ===== キャンバス上のテキスト =====
-  const I18N = {
+  const CANVAS_I18N = {
     ja: {
       title: "旅のお守り",
-      sub: "安全な旅路と長寿を祈って",
+      sub:   "安全な旅路と長寿を祈って",
       traveler: "Traveler",
     },
     en: {
@@ -193,13 +226,23 @@
     },
   };
 
+  // 言語ごとのレイアウト調整
   const LAYOUT = {
-    ja: { titleY: 760, titleSize: 84, subY: 860, subSize: 42 },
-    en: { titleY: 750, titleSize: 72, subY: 845, subSize: 38 },
-    zh: { titleY: 750, titleSize: 80, subY: 850, subSize: 42 },
+    ja: {
+      titleY: 760,  titleSize: 82,
+      subY:   850,  subSize:   40,
+    },
+    en: {
+      titleY: 760,  titleSize: 70,   // 小さめにして枠内に収める
+      subY:   845,  subSize:   38,
+    },
+    zh: {
+      titleY: 760,  titleSize: 78,
+      subY:   850,  subSize:   40,
+    },
   };
 
-  // ===== UI テキスト =====
+  // ===== UI の文言 =====
   const UI_I18N = {
     ja: {
       heading:  "幸運を味わう — 旅の安全と長寿を願って。",
@@ -211,6 +254,7 @@
       btnSave:  "PNGを保存",
       btnShare: "シェアする",
       footer:   "© Wagyu Blessing — Hashtag: <strong>#wagyu_blessing</strong>",
+      toast:    "✨お守りに願いを込めました ✨",
     },
     en: {
       heading:  "Taste Good Fortune – Wishing You Safe Travels and Long Life.",
@@ -218,10 +262,11 @@
       labelLang:"Language",
       labelName:"Name (optional)",
       labelBg:  "Background color (for SNS)",
-      btnMake:  "Create my amulet",
+      btnMake:  "Bless my amulet",
       btnSave:  "Save PNG",
       btnShare: "Share",
       footer:   "© Wagyu Blessing — Hashtag: <strong>#wagyu_blessing</strong>",
+      toast:    "✨ Your wish has been blessed ✨",
     },
     zh: {
       heading:  "品尝幸运 —— 祝您旅途平安、长命百岁。",
@@ -229,28 +274,62 @@
       labelLang:"语言",
       labelName:"姓名（可选）",
       labelBg:  "背景颜色（适合 SNS）",
-      btnMake:  "祈愿并生成护身符",
+      btnMake:  "为护身符注入祈愿",
       btnSave:  "保存 PNG",
       btnShare: "分享",
       footer:   "© Wagyu Blessing — 话题标签：<strong>#wagyu_blessing</strong>",
+      toast:    "✨ 祈愿已注入护身符 ✨",
     },
   };
 
   // ===== 背景色候補 =====
   const BG_COLORS = [
-    { key:"deep",        color:"#0b3b5a", labels:{ja:"深い藍",        en:"Deep Indigo",   zh:"深靛蓝"} },
-    { key:"sakura",      color:"#f9c5cf", labels:{ja:"桜ピンク",      en:"Sakura Pink",   zh:"樱花粉"} },
-    { key:"jade",        color:"#0f766e", labels:{ja:"翡翠グリーン",  en:"Jade Green",    zh:"翡翠绿"} },
-    { key:"purple-gold", color:"#432f70", labels:{ja:"紫×金",         en:"Purple × Gold", zh:"紫×金"} },
-    { key:"ryukyu-blue", color:"#0077b6", labels:{ja:"琉球ブルー",     en:"Ryukyu Blue",   zh:"琉球蓝"} },
-    { key:"sunset",      color:"#f97316", labels:{ja:"サンセット",     en:"Sunset Orange", zh:"夕阳橙"} },
-    { key:"turquoise",   color:"#10b7b0", labels:{ja:"ターコイズ",     en:"Turquoise",     zh:"绿松石色"} },
-    { key:"golden-hour", color:"#fad643", labels:{ja:"ゴールデンアワー", en:"Golden Hour",  zh:"金色黄昏"} },
+    {
+      key: "deep",
+      color: "#0b3b5a",
+      labels: { ja: "深い藍", en: "Deep Indigo", zh: "深靛蓝" },
+    },
+    {
+      key: "sakura",
+      color: "#f9c5cf",
+      labels: { ja: "桜ピンク", en: "Sakura Pink", zh: "樱花粉" },
+    },
+    {
+      key: "jade",
+      color: "#0f766e",
+      labels: { ja: "翡翠グリーン", en: "Jade Green", zh: "翡翠绿" },
+    },
+    {
+      key: "purple-gold",
+      color: "#432f70",
+      labels: { ja: "紫×金", en: "Purple × Gold", zh: "紫×金" },
+    },
+    {
+      key: "ryukyu-blue",
+      color: "#0077b6",
+      labels: { ja: "琉球ブルー", en: "Ryukyu Blue", zh: "琉球蓝" },
+    },
+    {
+      key: "sunset",
+      color: "#f97316",
+      labels: { ja: "サンセット", en: "Sunset Orange", zh: "夕阳橙" },
+    },
+    {
+      key: "golden-hour",
+      color: "#f6cf65",
+      labels: { ja: "ゴールデンアワー", en: "Golden Hour", zh: "金色黄昏" },
+    },
+    {
+      key: "turquoise",
+      color: "#10b7b0",
+      labels: { ja: "ターコイズ", en: "Turquoise", zh: "绿松石色" },
+    },
   ];
 
-  // ===== UI適用 =====
-  function applyUILanguage(){
+  // ===== UIテキストを反映 =====
+  function applyUILanguage() {
     const t = UI_I18N[currentLang];
+
     headingEl.textContent = t.heading;
     subEl.innerHTML       = `${t.sub} <strong>#wagyu_blessing</strong>`;
     labelLang.textContent = t.labelLang;
@@ -260,31 +339,50 @@
     saveBtn.textContent   = t.btnSave;
     shareBtn.textContent  = t.btnShare;
     footerEl.innerHTML    = t.footer;
+    toastEl.textContent   = t.toast;
   }
 
-  function buildPalette(){
+  // ===== 背景色ボタンを描き直す（色付き） =====
+  function isDarkColor(hex){
+    const c = hex.replace("#","");
+    const r = parseInt(c.substring(0,2),16);
+    const g = parseInt(c.substring(2,4),16);
+    const b = parseInt(c.substring(4,6),16);
+    // 相対輝度が低いほど暗い
+    const brightness = (r*299 + g*587 + b*114)/1000;
+    return brightness < 140;
+  }
+
+  function buildPalette() {
     paletteEl.innerHTML = "";
-    BG_COLORS.forEach(c=>{
+    BG_COLORS.forEach(c => {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "chip" + (c.color === currentBg ? " active" : "");
       btn.dataset.color = c.color;
-      btn.textContent = c.labels[currentLang];
+      btn.textContent   = c.labels[currentLang];
+      btn.style.backgroundColor = c.color;
+      btn.style.color = isDarkColor(c.color) ? "#fff" : "#132127";
+      btn.style.borderColor = "#0005";
+      btn.style.filter = "saturate(1.1)";
       paletteEl.appendChild(btn);
     });
   }
 
-  paletteEl.addEventListener("click", e=>{
+  // 背景色ボタンクリック
+  paletteEl.addEventListener("click", (e) => {
     const target = e.target;
-    if(!target.classList.contains("chip")) return;
-    [...paletteEl.querySelectorAll(".chip")].forEach(b=>b.classList.remove("active"));
+    if (!target.classList.contains("chip")) return;
+
+    [...paletteEl.querySelectorAll(".chip")].forEach(b => b.classList.remove("active"));
     target.classList.add("active");
+
     currentBg = target.dataset.color;
     drawStatic();
   });
 
-  // ===== 描画ヘルパー =====
-  function drawText(text, x, y, size, weight){
+  // ===== キャンバスに文字を描くヘルパー =====
+  function drawText(text, x, y, size, weight) {
     ctx.save();
     ctx.font = `${weight} ${size}px "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif`;
     ctx.textAlign = "center";
@@ -294,226 +392,219 @@
     ctx.restore();
   }
 
-  function drawBaseAndText(){
+  // ベース＋文字だけ（アニメなし）
+  function drawStatic() {
+    if (!baseLoaded) return;
     const W = canvas.width;
     const H = canvas.height;
+
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = currentBg;
+    ctx.fillRect(0,0,W,H);
+
+    // お守り本体をそのまま描画
     ctx.drawImage(base, 0, 0, W, H);
 
-    const langData = I18N[currentLang] || I18N.ja;
+    const langData = CANVAS_I18N[currentLang] || CANVAS_I18N.ja;
     const layout   = LAYOUT[currentLang] || LAYOUT.ja;
     const travelerName = (nameEl.value || "").trim() || langData.traveler;
 
-    drawText(langData.title, W/2, layout.titleY, layout.titleSize, "700");
-    drawText(langData.sub,   W/2, layout.subY,   layout.subSize,  "600");
-    drawText(travelerName,   W/2, 1516, 100, "700");
-    drawText("#wagyu_blessing", W/2, 1618, 50, "600");
+    drawText(langData.title,   W/2, layout.titleY, layout.titleSize, "700");
+    drawText(langData.sub,     W/2, layout.subY,   layout.subSize,   "600");
+    drawText(travelerName,     W/2, 1516,         100,              "700");
+    drawText("#wagyu_blessing",W/2, 1618,          50,              "600");
   }
 
-  function drawStatic(){
-    if(!baseLoaded) return;
-    const W = canvas.width;
-    const H = canvas.height;
-    ctx.clearRect(0,0,W,H);
-    ctx.fillStyle = currentBg;
-    ctx.fillRect(0,0,W,H);
-    drawBaseAndText();
+  // ===== トースト表示 =====
+  let toastTimer = null;
+  function showToast(){
+    if (toastTimer) {
+      clearTimeout(toastTimer);
+      toastTimer = null;
+    }
+    toastEl.classList.add("show");
+    toastTimer = setTimeout(() => {
+      toastEl.classList.remove("show");
+    }, 2200);
   }
 
-  // ===== 桜パーティクル =====
+  // ===== アニメーション（ふわっと＋光リング＋桜） =====
   function createPetals(){
+    petals = [];
+    const count = 80;  // かなり多めでひらひら
     const W = canvas.width;
-    const H = canvas.height;
-    const list = [];
-    const count = 120; // 花びらの数
 
-    for(let i=0; i<count; i++){
-      const delay = Math.random()*0.5; // 少しずつ落ち始めをずらす
-
-      const baseX  = W/2 + (Math.random()*2-1)*W*0.45;
-      const startY = -80 - Math.random()*120;
-      const endY   = H + 90; // 画面の下より少し下
-
-      list.push({
-        baseX,
-        startY,
-        endY,
-        swayAmp: 30 + Math.random()*40,
-        swayFreq: 1.5 + Math.random()*2,
-        swayPhase: Math.random()*Math.PI*2,
-        rotSpeed: (Math.random()*2-1)*Math.PI*1.2,
-        size: 6 + Math.random()*8,
-        delay,
-        x: baseX,
-        y: startY,
-        angle: 0,
-        alpha: 0,
+    for (let i=0;i<count;i++){
+      petals.push({
+        x: Math.random()*W,
+        y: -Math.random()*400 - 80,        // かなり上から
+        vy: 40 + Math.random()*35,         // ゆっくりめの落下
+        vx: -20 + Math.random()*40,        // 左右に揺れる
+        rotation: Math.random()*Math.PI*2,
+        vr: (-0.6 + Math.random()*1.2),    // 回転速度
+        size: 26 + Math.random()*12,
+        driftPhase: Math.random()*Math.PI*2,
+        life: 4500 + Math.random()*800,    // 落ちてからゆっくり消える
+        born: performance.now()
       });
     }
-    return list;
   }
 
-  // ★ここを修正：最後まで落ち続けながら、いちばん下でふわっと消える
-  function updatePetals(globalT){
-    petals.forEach(p=>{
-      if(globalT < p.delay){
-        p.alpha = 0;
-        return;
-      }
+  function drawPetal(p, now){
+    const age = now - p.born;
+    const t   = Math.min(age / p.life, 1);
+    const alpha = 1 - t;                       // 下に行くほど薄く
 
-      // 0〜1 に正規化（この花びらの「一生分」）
-      const raw  = (globalT - p.delay) / (1 - p.delay);
-      const fall = Math.min(1, Math.max(0, raw)); // 0〜1
+    const sway = Math.sin(p.driftPhase + age*0.0018)*25;
+    const x = p.x + sway;
+    const y = p.y + age * (p.vy/1000);
+    const rot = p.rotation + age*0.001*p.vr;
 
-      // 縦方向：ほぼ等速で下へ
-      const eased = fall; // 固まらないように線形
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rot);
+    ctx.globalAlpha = alpha;
+    const w = p.size;
+    const h = p.size*0.6;
 
-      p.y = p.startY + (p.endY - p.startY)*eased;
+    // さくら色グラデ
+    const grd = ctx.createLinearGradient(-w/2,-h/2,w/2,h/2);
+    grd.addColorStop(0, "#ffe4f0");
+    grd.addColorStop(1, "#f472b6");
+    ctx.fillStyle = grd;
 
-      // 横ゆれ＋回転は fall を使って常にゆるく動かす
-      const swayT = fall;
-      p.x = p.baseX + Math.sin(swayT*p.swayFreq*Math.PI*2 + p.swayPhase)*p.swayAmp;
-      p.angle = p.rotSpeed * swayT;
-
-      // アルファ：最初に少しフェードイン → ほぼ不透明 → 下あたりでふわっと消える
-      let alphaBase;
-      if(fall < 0.1){
-        alphaBase = 0.95 * (fall / 0.1);     // 0〜0.1 でスッと現れる
-      }else{
-        alphaBase = 0.95;
-      }
-
-      if(fall > 0.85){
-        const fadeT = (fall - 0.85) / 0.15;  // 0.85〜1.0 で消える
-        const k = Math.min(1, Math.max(0, fadeT));
-        alphaBase *= Math.pow(1 - k, 1.5);
-      }
-
-      p.alpha = alphaBase;
-    });
+    ctx.beginPath();
+    ctx.moveTo(0, -h/2);
+    ctx.quadraticCurveTo(w/2, -h/2, w/2, 0);
+    ctx.quadraticCurveTo(w/2, h/2, 0, h/2);
+    ctx.quadraticCurveTo(-w/2, h/2, -w/2, 0);
+    ctx.quadraticCurveTo(-w/2,-h/2, 0,-h/2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
   }
 
-  // ===== 1フレーム描画 =====
-  function drawAnimationFrame(globalT){
-    if(!baseLoaded) return;
+  function startRing(){
+    ring = {
+      start: performance.now(),
+      duration: 900
+    };
+  }
+
+  function drawRing(now){
+    if (!ring) return;
+    const elapsed = now - ring.start;
+    const t = Math.min(elapsed / ring.duration, 1);
     const W = canvas.width;
     const H = canvas.height;
-    const cx = W/2;
-    const cy = H/2;
+    const maxR = 620;
+    const minR = 380;
+    const radius = minR + (maxR-minR)*t;
+    const alpha  = 0.9*(1-t);
 
+    ctx.save();
+    ctx.translate(W/2,H/2);
+    ctx.globalAlpha = alpha;
+
+    const grd = ctx.createRadialGradient(0,0, radius*0.2, 0,0,radius);
+    grd.addColorStop(0, "rgba(255,255,255,0.9)");
+    grd.addColorStop(0.4, "rgba(255,255,200,0.6)");
+    grd.addColorStop(1, "rgba(255,255,200,0.0)");
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.arc(0,0,radius,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.restore();
+
+    if (t >= 1){
+      ring = null;
+    }
+  }
+
+  function animate(now){
+    if (!animating) return;
+
+    const W = canvas.width;
+    const H = canvas.height;
+    const elapsed = now - animStart;
+    const t = Math.min(elapsed / 1400, 1);   // 1.4秒でふわっと
+
+    // イージング（ぐっと膨らんで戻る）
+    const easeOut = 1 - Math.pow(1-t, 3);
+    const scale = 1 + 0.18 * Math.sin(easeOut * Math.PI); // ふわ〜っと
+
+    // 背景＋お守り＋文字（スケール付き）
     ctx.clearRect(0,0,W,H);
     ctx.fillStyle = currentBg;
     ctx.fillRect(0,0,W,H);
 
-    // ふわっとスケール
-    const scale = 1 + 0.18*Math.sin(globalT*Math.PI);
-
-    // 強めのフラッシュ（序盤）
-    if(globalT < 0.45){
-      const k = 1 - globalT/0.45;
-      ctx.save();
-      ctx.globalAlpha = 0.85*k;
-      ctx.fillStyle = "white";
-      ctx.fillRect(0,0,W,H);
-      ctx.restore();
-    }
-
-    // お守り本体＋文字
     ctx.save();
-    ctx.translate(cx,cy);
-    ctx.scale(scale,scale);
-    ctx.translate(-cx,-cy);
-    drawBaseAndText();
+    ctx.translate(W/2,H/2);
+    ctx.scale(scale, scale);
+    ctx.translate(-W/2,-H/2);
+    ctx.drawImage(base, 0, 0, W, H);
+
+    const langData = CANVAS_I18N[currentLang] || CANVAS_I18N.ja;
+    const layout   = LAYOUT[currentLang] || LAYOUT.ja;
+    const travelerName = (nameEl.value || "").trim() || langData.traveler;
+    drawText(langData.title,   W/2, layout.titleY, layout.titleSize, "700");
+    drawText(langData.sub,     W/2, layout.subY,   layout.subSize,   "600");
+    drawText(travelerName,     W/2, 1516,         100,              "700");
+    drawText("#wagyu_blessing",W/2, 1618,          50,              "600");
     ctx.restore();
 
     // 光のリング
-    const ringP = Math.min(1, Math.max(0,(globalT-0.1)/0.7));
-    if(ringP > 0){
-      const ringCx = W/2;
-      const ringCy = H*0.33;
-      const baseR  = W*0.16;
-      const r      = baseR + baseR*0.8*ringP;
-      const alpha  = 0.9*(1-ringP);
+    drawRing(now);
 
-      ctx.save();
-      const grad = ctx.createRadialGradient(ringCx, ringCy, 0, ringCx, ringCy, r);
-      grad.addColorStop(0,   "rgba(255,255,255,1)");
-      grad.addColorStop(0.5, "rgba(255,255,255,0.7)");
-      grad.addColorStop(1,   "rgba(255,255,255,0)");
-      ctx.globalAlpha = alpha;
-      ctx.strokeStyle = grad;
-      ctx.lineWidth   = 22;
-      ctx.beginPath();
-      ctx.arc(ringCx, ringCy, r, 0, Math.PI*2);
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    // 桜
-    if(petals.length){
-      ctx.save();
-      petals.forEach(p=>{
-        if(p.alpha <= 0) return;
-        ctx.globalAlpha = p.alpha;
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.angle);
-        const w = p.size;
-        const h = p.size*1.8;
-        const grad = ctx.createLinearGradient(-w, -h/2, w, h/2);
-        grad.addColorStop(0,   "rgba(255,255,255,0)");
-        grad.addColorStop(0.35,"rgba(255,235,245,0.97)");
-        grad.addColorStop(1,   "rgba(255,200,220,0.4)");
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.ellipse(0,0,w,h,0,0,Math.PI*2);
-        ctx.fill();
-        ctx.restore();
-      });
-      ctx.restore();
-    }
-  }
-
-  // ===== アニメーション開始 =====
-  function startBlessingAnimation(){
-    if(!baseLoaded) return;
-
-    if(animId !== null){
-      cancelAnimationFrame(animId);
-      animId = null;
-    }
-
-    petals = createPetals();
-    const duration = 3200; // 3.2 秒
-    const start = performance.now();
-
-    function frame(now){
-      const t = Math.min(1, (now - start)/duration);
-      updatePetals(t);
-      drawAnimationFrame(t);
-
-      if(t < 1){
-        animId = requestAnimationFrame(frame);
-      }else{
-        animId = null;
-        drawStatic();
+    // 花びら
+    let alive = 0;
+    for (const p of petals){
+      drawPetal(p, now);
+      const age = now - p.born;
+      if (age < p.life && (p.y + age*(p.vy/1000)) < H+80){
+        alive++;
       }
     }
-    animId = requestAnimationFrame(frame);
+
+    // 終了判定（スケール戻っていて、リングもなく、花びらがほぼ消えたら）
+    if (elapsed > 2600 && !ring && alive < 2){
+      animating = false;
+      drawStatic();          // 最後に普通の状態で固定
+      return;
+    }
+
+    requestAnimationFrame(animate);
   }
 
-  // ===== イベント =====
-  makeBtn.addEventListener("click", startBlessingAnimation);
+  function triggerBlessing(){
+    if (!baseLoaded) return;
+    animating = true;
+    animStart = performance.now();
+    createPetals();
+    startRing();
+    requestAnimationFrame(animate);
+  }
 
-  langEl.addEventListener("change", ()=>{
+  // ===== イベント設定 =====
+  makeBtn.addEventListener("click", () => {
+    triggerBlessing();
+    showToast();
+  });
+
+  langEl.addEventListener("change", () => {
     currentLang = langEl.value;
     applyUILanguage();
     buildPalette();
     drawStatic();
   });
 
-  nameEl.addEventListener("input", drawStatic);
+  nameEl.addEventListener("input", () => {
+    if (!animating) drawStatic();
+  });
 
-  saveBtn.addEventListener("click", ()=>{
+  // PNG保存
+  saveBtn.addEventListener("click", () => {
     const data = canvas.toDataURL("image/png");
     const a = document.createElement("a");
     a.href = data;
@@ -521,11 +612,12 @@
     a.click();
   });
 
-  shareBtn.addEventListener("click", ()=>{
+  // シェア
+  shareBtn.addEventListener("click", () => {
     const tag = "#wagyu_blessing";
-    if(navigator.share){
+    if (navigator.share) {
       navigator.share({ text: tag });
-    }else if(navigator.clipboard){
+    } else if (navigator.clipboard) {
       navigator.clipboard.writeText(tag);
       alert("ハッシュタグ " + tag + " をコピーしました。");
     }
