@@ -158,7 +158,7 @@
         <div class="row" style="gap:8px">
           <button class="btn" id="make" type="button">願いを込めて お守りを作る</button>
           <button class="btn alt" id="save" type="button">PNGを保存</button>
-          <button class="btn alt" id="share" type="button">シェアする</button>
+          <button class="btn alt" id="share" type="button">このお守りをシェア</button>
         </div>
 
         <p class="hint">
@@ -204,8 +204,9 @@
   const footerEl  = document.querySelector(".footer");
 
   // ===== グローバル状態 =====
-  let currentLang = langEl.value;        // "ja" / "en" / "zh"
-  let currentBg   = "#10b7b0";           // 初期ターコイズ
+  let currentLang   = langEl.value;        // "ja" / "en" / "zh"
+  let currentBg     = "#10b7b0";           // 初期ターコイズ
+  let currentBgKey  = "turquoise";         // 背景キー（URL用）
 
   // アニメーション用
   let animating = false;
@@ -215,7 +216,7 @@
 
   // ===== 文字なしお守り画像 =====
   const base = new Image();
-  base.src = "omamori_base.png";   // 既にアップしてある文字なしPNG
+  base.src = "omamori_base.png";   // 同フォルダの文字なしPNG
   let baseLoaded = false;
 
   base.onload = () => {
@@ -268,9 +269,10 @@
       labelBg:  "背景カラー（SNS映え）",
       btnMake:  "願いを込めて お守りを作る",
       btnSave:  "PNGを保存",
-      btnShare: "シェアする",
+      btnShare: "このお守りをシェア",
       footer:   "© Wagyu Blessing — Hashtag: <strong>#wagyu_blessing</strong>",
       toast:    "✨お守りに願いを込めました ✨",
+      shareAlert: "このお守りのURLをコピーしました。",
     },
     en: {
       heading:  "Taste Good Fortune – Wishing You Safe Travels and Long Life.",
@@ -280,9 +282,10 @@
       labelBg:  "Background color (for SNS)",
       btnMake:  "Bless my amulet",
       btnSave:  "Save PNG",
-      btnShare: "Share",
+      btnShare: "Share this amulet",
       footer:   "© Wagyu Blessing — Hashtag: <strong>#wagyu_blessing</strong>",
       toast:    "✨ Your wish has been blessed ✨",
+      shareAlert: "Copied this amulet URL to your clipboard.",
     },
     zh: {
       heading:  "品尝幸运 —— 祝您旅途平安、长命百岁。",
@@ -292,9 +295,10 @@
       labelBg:  "背景颜色（适合 SNS）",
       btnMake:  "为护身符注入祈愿",
       btnSave:  "保存 PNG",
-      btnShare: "分享",
+      btnShare: "分享此护身符",
       footer:   "© Wagyu Blessing — 话题标签：<strong>#wagyu_blessing</strong>",
       toast:    "✨ 祈愿已注入护身符 ✨",
+      shareAlert: "已复制此护身符的链接。",
     },
   };
 
@@ -398,8 +402,9 @@
     BG_COLORS.forEach(c => {
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "chip" + (c.color === currentBg ? " active" : "");
+      btn.className = "chip" + (c.key === currentBgKey ? " active" : "");
       btn.dataset.color = c.color;
+      btn.dataset.key   = c.key;
       btn.textContent   = c.labels[currentLang];
       btn.style.backgroundColor = c.color;
       btn.style.color = isDarkColor(c.color) ? "#fff" : "#132127";
@@ -417,7 +422,8 @@
     [...paletteEl.querySelectorAll(".chip")].forEach(b => b.classList.remove("active"));
     target.classList.add("active");
 
-    currentBg = target.dataset.color;
+    currentBg    = target.dataset.color;
+    currentBgKey = target.dataset.key;
     if (!animating) drawStatic();
   });
 
@@ -631,18 +637,43 @@
     requestAnimationFrame(animate);
   }
 
+  // ===== URL から状態を復元 =====
+  function applyStateFromUrl(){
+    const params = new URLSearchParams(window.location.search);
+    const urlLang = params.get("lang");
+    const urlBg   = params.get("bg");
+    const urlName = params.get("name");
+
+    if (urlLang && (urlLang === "ja" || urlLang === "en" || urlLang === "zh")) {
+      currentLang = urlLang;
+      langEl.value = urlLang;
+    }
+
+    if (urlBg) {
+      const found = BG_COLORS.find(c => c.key === urlBg);
+      if (found) {
+        currentBgKey = found.key;
+        currentBg    = found.color;
+      }
+    }
+
+    if (urlName) {
+      nameEl.value = urlName;
+    }
+  }
+
   // ===== イベント設定 =====
   makeBtn.addEventListener("click", () => {
     triggerBlessing();
     showToast();
-    updateLuckyScore();   // ★ ラッキー度メーター更新
+    updateLuckyScore();   // ラッキー度メーター更新
   });
 
   langEl.addEventListener("change", () => {
     currentLang = langEl.value;
     applyUILanguage();
     buildPalette();
-    luckyEl.innerHTML = "";   // 言語切り替えで一度リセット
+    luckyEl.innerHTML = "";   // 言語切り替え時は一旦クリア
     if (!animating) drawStatic();
   });
 
@@ -659,20 +690,45 @@
     a.click();
   });
 
-  // シェア
-  shareBtn.addEventListener("click", () => {
-    const tag = "#wagyu_blessing";
-    if (navigator.share) {
-      navigator.share({ text: tag });
-    } else if (navigator.clipboard) {
-      navigator.clipboard.writeText(tag);
-      alert("ハッシュタグ " + tag + " をコピーしました。");
+  // シェア：現在の設定をクエリ付きURLにしてコピー／共有
+  shareBtn.addEventListener("click", async () => {
+    const baseUrl = window.location.origin + window.location.pathname;
+    const params  = new URLSearchParams();
+    params.set("lang", currentLang);
+    params.set("bg",   currentBgKey);
+    const name = (nameEl.value || "").trim();
+    if (name) params.set("name", name);
+
+    const shareUrl = `${baseUrl}?${params.toString()}`;
+    const ui = UI_I18N[currentLang] || UI_I18N.ja;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          url: shareUrl,
+          text: "#wagyu_blessing",
+        });
+      } else if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+        alert(ui.shareAlert);
+      } else {
+        // 古い環境用フォールバック
+        window.prompt("Copy this URL:", shareUrl);
+      }
+    } catch (e) {
+      console.error(e);
     }
   });
 
   // ===== 初期表示 =====
-  applyUILanguage();
-  buildPalette();
+  (function init(){
+    applyStateFromUrl();   // URLパラメータを先に反映
+    applyUILanguage();     // 言語テキストを反映
+    buildPalette();        // 背景ボタン反映
+    if (baseLoaded) {
+      drawStatic();
+    }
+  })();
 </script>
 </body>
 </html>
