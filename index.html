@@ -111,6 +111,18 @@
       opacity:1;
       transform:translateX(-50%) translateY(0);
     }
+
+    /* ラッキー度メーター表示 */
+    .lucky-box{
+      margin-top:10px;
+      font-size:12px;
+      line-height:1.5;
+      padding:8px 10px;
+      border-radius:10px;
+      background:rgba(255,255,255,0.85);
+      border:1px dashed #c2b58a;
+      min-height:2.6em;
+    }
   </style>
 </head>
 <body>
@@ -152,6 +164,9 @@
         <p class="hint">
           ※ お名前は保存しません。お守り画像の生成のみに使用します。
         </p>
+
+        <!-- ラッキー度メーター表示エリア -->
+        <div id="lucky" class="lucky-box"></div>
       </div>
     </section>
 
@@ -179,6 +194,7 @@
   const shareBtn = document.getElementById("share");
   const paletteEl= document.getElementById("palette");
   const toastEl  = document.getElementById("toast");
+  const luckyEl  = document.getElementById("lucky");
 
   const headingEl = document.getElementById("heading");
   const subEl     = document.getElementById("subtext");
@@ -281,6 +297,31 @@
       toast:    "✨ 祈愿已注入护身符 ✨",
     },
   };
+
+  // ===== Lucky Score メッセージ =====
+  const LUCKY_MESSAGES = {
+    ja: [
+      'Lucky score: ★★★★★<br>Wagyu Luck: 96% – 最高の旅日和です。',
+      'Lucky score: ★★★★☆<br>Calm Sea, Safe Journey: 88% – のんびり安心トラベル。',
+      'Lucky score: ★★★★☆<br>Travel Charm: 82% – 直感のまま出かけてみよう。'
+    ],
+    en: [
+      'Lucky score: ★★★★★<br>Wagyu Luck: 96% – Perfect for new adventures.',
+      'Lucky score: ★★★★☆<br>Calm Sea, Safe Journey: 88%.',
+      'Lucky score: ★★★★☆<br>Travel Charm: 82% – Follow your curiosity.'
+    ],
+    zh: [
+      'Lucky score: ★★★★★<br>Wagyu Luck: 96% – 今天非常适合新的旅程。',
+      'Lucky score: ★★★★☆<br>Calm Sea, Safe Journey: 88% – 一路平安，好运相随。',
+      'Lucky score: ★★★★☆<br>Travel Charm: 82% – 跟着好奇心去旅行吧。'
+    ],
+  };
+
+  function updateLuckyScore() {
+    const msgs = LUCKY_MESSAGES[currentLang] || LUCKY_MESSAGES.en;
+    const msg  = msgs[Math.floor(Math.random() * msgs.length)];
+    luckyEl.innerHTML = msg;
+  }
 
   // ===== 背景色候補 =====
   const BG_COLORS = [
@@ -433,7 +474,7 @@
     const H = canvas.height;
     const now = performance.now();
 
-    const count = 120; // 前より多めに
+    const count = 120; // 多めに
 
     for (let i = 0; i < count; i++){
       const life = 2600 + Math.random()*900;  // 2.6〜3.5秒くらい
@@ -457,14 +498,12 @@
     const tRaw = age / p.life;
     if (tRaw >= 1) return;
 
-    // スムーズに落ちるためのイージング
     const t = tRaw;
     const ease = t * t * (3 - 2 * t); // smoothstep
 
     const y = p.startY + (p.endY - p.startY) * ease;
     const x = p.x0 + Math.sin(p.phase + age * 0.002) * p.amp;
 
-    // 下に近づくほどゆっくりフェードアウト
     const alpha = 1 - t;
     const rot = p.phase * 2 + t * Math.PI * 1.2;
 
@@ -541,11 +580,9 @@
     const elapsed = now - animStart;
     const t = Math.min(elapsed / 1400, 1);   // 1.4秒でふわっと
 
-    // イージング
     const easeOut = 1 - Math.pow(1-t, 3);
-    const scale = 1 + 0.18 * Math.sin(easeOut * Math.PI); // ふわ〜っと
+    const scale = 1 + 0.18 * Math.sin(easeOut * Math.PI);
 
-    // 背景＋お守り＋文字（スケール付き）
     ctx.clearRect(0,0,W,H);
     ctx.fillStyle = currentBg;
     ctx.fillRect(0,0,W,H);
@@ -565,10 +602,8 @@
     drawText("#wagyu_blessing",W/2, 1618,          50,              "600");
     ctx.restore();
 
-    // 光のリング
     drawRing(now);
 
-    // 花びら
     let alive = 0;
     for (const p of petals){
       const age = now - p.born;
@@ -578,7 +613,6 @@
       }
     }
 
-    // 終了判定：少し長め（約3秒ちょっと）まで流してからフェードアウト
     if (elapsed > 3200 && !ring && alive === 0){
       animating = false;
       drawStatic();
@@ -601,12 +635,14 @@
   makeBtn.addEventListener("click", () => {
     triggerBlessing();
     showToast();
+    updateLuckyScore();   // ★ ラッキー度メーター更新
   });
 
   langEl.addEventListener("change", () => {
     currentLang = langEl.value;
     applyUILanguage();
     buildPalette();
+    luckyEl.innerHTML = "";   // 言語切り替えで一度リセット
     if (!animating) drawStatic();
   });
 
