@@ -147,6 +147,11 @@
           </select>
         </div>
 
+        <div class="row">
+          <label for="template" id="label-template">Template</label>
+          <select id="template"></select>
+        </div>
+
         <div class="row"><label for="name" id="label-name">お名前（任意）</label></div>
         <div class="row">
           <input id="name" type="text" maxlength="24" placeholder="Traveler" />
@@ -189,6 +194,7 @@
   const ctx      = canvas.getContext("2d");
   const langEl   = document.getElementById("lang");
   const nameEl   = document.getElementById("name");
+  const templateEl = document.getElementById("template");
   const makeBtn  = document.getElementById("make");
   const saveBtn  = document.getElementById("save");
   const shareBtn = document.getElementById("share");
@@ -201,30 +207,68 @@
   const labelLang = document.getElementById("label-lang");
   const labelName = document.getElementById("label-name");
   const labelBg   = document.getElementById("label-bg");
+  const labelTemplate = document.getElementById("label-template");
   const footerEl  = document.querySelector(".footer");
 
   // ===== グローバル状態 =====
   let currentLang   = langEl.value;        // "ja" / "en" / "zh"
   let currentBg     = "#10b7b0";           // 初期ターコイズ
   let currentBgKey  = "turquoise";         // 背景キー（URL用）
+  let currentTemplateKey = "shuri";        // テンプレートキー
 
-  // アニメーション用
   let animating = false;
   let animStart = 0;
   let petals = [];
   let ring = null;
 
-  // ===== 文字なしお守り画像 =====
-  const base = new Image();
-  base.src = "omamori_base.png";   // 同フォルダの文字なしPNG
+  let base = null;          // 現在のテンプレ画像
   let baseLoaded = false;
 
-  base.onload = () => {
-    baseLoaded = true;
-    drawStatic();
-  };
+  // ===== テンプレート定義（将来用テンプレ含む） =====
+  const TEMPLATES = [
+    {
+      key: "shuri",
+      file: "omamori_base.png",   // 今の首里城お守りPNG
+      labels: {
+        ja: "首里城 × 菊花紋",
+        en: "Shuri Castle",
+        zh: "首里城护身符",
+      },
+    },
+    {
+      key: "ocean",
+      file: "omamori_base_ocean.png", // ← 将来、海サンセット版を追加
+      labels: {
+        ja: "海とサンセット",
+        en: "Ocean & Sunset",
+        zh: "海洋与夕阳",
+      },
+    },
+    {
+      key: "flowers",
+      file: "omamori_base_flowers.png", // ← 将来、花柄版を追加
+      labels: {
+        ja: "琉球の花々",
+        en: "Ryukyu Flowers",
+        zh: "琉球花卉",
+      },
+    },
+  ];
 
-  // ===== キャンバス上のテキスト =====
+  function loadBaseForCurrentTemplate() {
+    const tpl = TEMPLATES.find(t => t.key === currentTemplateKey) || TEMPLATES[0];
+    baseLoaded = false;
+    base = new Image();
+    base.src = tpl.file;
+    base.onload = () => {
+      baseLoaded = true;
+      if (!animating) {
+        drawStatic();
+      }
+    };
+  }
+
+  // ===== キャンバス上の文言 =====
   const CANVAS_I18N = {
     ja: {
       title: "旅のお守り",
@@ -265,6 +309,7 @@
       heading:  "幸運を味わう — 旅の安全と長寿を願って。",
       sub:      "沖縄発・幸運の和牛サンド｜SNS映えする日本のお守りデザインを作ってシェアしよう！",
       labelLang:"Language",
+      labelTemplate: "テンプレート",
       labelName:"お名前（任意）",
       labelBg:  "背景カラー（SNS映え）",
       btnMake:  "願いを込めて お守りを作る",
@@ -278,6 +323,7 @@
       heading:  "Taste Good Fortune – Wishing You Safe Travels and Long Life.",
       sub:      "From Okinawa: Wagyu Lucky Sandwich | Create a Japanese omamori-style design and share it on SNS!",
       labelLang:"Language",
+      labelTemplate: "Template",
       labelName:"Name (optional)",
       labelBg:  "Background color (for SNS)",
       btnMake:  "Bless my amulet",
@@ -291,6 +337,7 @@
       heading:  "品尝幸运 —— 祝您旅途平安、长命百岁。",
       sub:      "来自冲绳的和牛幸运三明治｜制作日本御守风格的设计并分享到 SNS！",
       labelLang:"语言",
+      labelTemplate: "模板",
       labelName:"姓名（可选）",
       labelBg:  "背景颜色（适合 SNS）",
       btnMake:  "为护身符注入祈愿",
@@ -375,19 +422,32 @@
   function applyUILanguage() {
     const t = UI_I18N[currentLang];
 
-    headingEl.textContent = t.heading;
-    subEl.innerHTML       = `${t.sub} <strong>#wagyu_blessing</strong>`;
-    labelLang.textContent = t.labelLang;
-    labelName.textContent = t.labelName;
-    labelBg.textContent   = t.labelBg;
-    makeBtn.textContent   = t.btnMake;
-    saveBtn.textContent   = t.btnSave;
-    shareBtn.textContent  = t.btnShare;
-    footerEl.innerHTML    = t.footer;
-    toastEl.textContent   = t.toast;
+    headingEl.textContent    = t.heading;
+    subEl.innerHTML          = `${t.sub} <strong>#wagyu_blessing</strong>`;
+    labelLang.textContent    = t.labelLang;
+    labelTemplate.textContent= t.labelTemplate;
+    labelName.textContent    = t.labelName;
+    labelBg.textContent      = t.labelBg;
+    makeBtn.textContent      = t.btnMake;
+    saveBtn.textContent      = t.btnSave;
+    shareBtn.textContent     = t.btnShare;
+    footerEl.innerHTML       = t.footer;
+    toastEl.textContent      = t.toast;
   }
 
-  // ===== 背景色ボタンを色付きで描き直す =====
+  // ===== テンプレートセレクトを作る =====
+  function buildTemplateSelect() {
+    templateEl.innerHTML = "";
+    TEMPLATES.forEach(tpl => {
+      const opt = document.createElement("option");
+      opt.value = tpl.key;
+      opt.textContent = tpl.labels[currentLang] || tpl.labels.en;
+      if (tpl.key === currentTemplateKey) opt.selected = true;
+      templateEl.appendChild(opt);
+    });
+  }
+
+  // ===== 背景色ボタンを描き直す（色付き） =====
   function isDarkColor(hex){
     const c = hex.replace("#","");
     const r = parseInt(c.substring(0,2),16);
@@ -597,7 +657,9 @@
     ctx.translate(W/2,H/2);
     ctx.scale(scale, scale);
     ctx.translate(-W/2,-H/2);
-    ctx.drawImage(base, 0, 0, W, H);
+    if (baseLoaded) {
+      ctx.drawImage(base, 0, 0, W, H);
+    }
 
     const langData = CANVAS_I18N[currentLang] || CANVAS_I18N.ja;
     const layout   = LAYOUT[currentLang] || LAYOUT.ja;
@@ -643,6 +705,7 @@
     const urlLang = params.get("lang");
     const urlBg   = params.get("bg");
     const urlName = params.get("name");
+    const urlTpl  = params.get("tpl") || params.get("template");
 
     if (urlLang && (urlLang === "ja" || urlLang === "en" || urlLang === "zh")) {
       currentLang = urlLang;
@@ -650,15 +713,22 @@
     }
 
     if (urlBg) {
-      const found = BG_COLORS.find(c => c.key === urlBg);
-      if (found) {
-        currentBgKey = found.key;
-        currentBg    = found.color;
+      const foundBg = BG_COLORS.find(c => c.key === urlBg);
+      if (foundBg) {
+        currentBgKey = foundBg.key;
+        currentBg    = foundBg.color;
       }
     }
 
     if (urlName) {
       nameEl.value = urlName;
+    }
+
+    if (urlTpl) {
+      const foundTpl = TEMPLATES.find(t => t.key === urlTpl);
+      if (foundTpl) {
+        currentTemplateKey = foundTpl.key;
+      }
     }
   }
 
@@ -672,9 +742,17 @@
   langEl.addEventListener("change", () => {
     currentLang = langEl.value;
     applyUILanguage();
+    buildTemplateSelect();
     buildPalette();
     luckyEl.innerHTML = "";   // 言語切り替え時は一旦クリア
     if (!animating) drawStatic();
+  });
+
+  templateEl.addEventListener("change", () => {
+    const key = templateEl.value;
+    const found = TEMPLATES.find(t => t.key === key);
+    currentTemplateKey = found ? found.key : "shuri";
+    loadBaseForCurrentTemplate();
   });
 
   nameEl.addEventListener("input", () => {
@@ -696,6 +774,7 @@
     const params  = new URLSearchParams();
     params.set("lang", currentLang);
     params.set("bg",   currentBgKey);
+    params.set("tpl",  currentTemplateKey);
     const name = (nameEl.value || "").trim();
     if (name) params.set("name", name);
 
@@ -712,7 +791,6 @@
         await navigator.clipboard.writeText(shareUrl);
         alert(ui.shareAlert);
       } else {
-        // 古い環境用フォールバック
         window.prompt("Copy this URL:", shareUrl);
       }
     } catch (e) {
@@ -722,12 +800,11 @@
 
   // ===== 初期表示 =====
   (function init(){
-    applyStateFromUrl();   // URLパラメータを先に反映
-    applyUILanguage();     // 言語テキストを反映
-    buildPalette();        // 背景ボタン反映
-    if (baseLoaded) {
-      drawStatic();
-    }
+    applyStateFromUrl();      // URLパラメータを先に反映
+    applyUILanguage();        // 言語テキストを反映
+    buildTemplateSelect();    // テンプレセレクト
+    buildPalette();           // 背景ボタン
+    loadBaseForCurrentTemplate(); // 現在テンプレの画像を読み込み
   })();
 </script>
 </body>
