@@ -43,7 +43,6 @@
       padding:10px 12px;
       border-radius:12px;
       border:1px solid #0002;
-      background:#fff;
     }
     button{
       cursor:pointer;
@@ -55,20 +54,31 @@
     .btn{background:var(--btn);color:#fff}
     .btn.alt{background:#fff;border:1px solid var(--btn);color:var(--btn)}
     .stack{display:flex;flex-wrap:wrap;gap:10px}
+
     .chip{
-      padding:8px 14px;
+      padding:10px 18px;
       border-radius:999px;
-      border:1px solid #0003;
+      border:1px solid #0002;
       background:#fff;
       cursor:pointer;
       user-select:none;
-      font-size:14px;
-      transition:transform .12s ease, box-shadow .12s ease, background-color .12s ease, color .12s ease;
+      font-weight:600;
+      min-width:88px;
+      text-align:center;
+      transition:transform .12s ease, box-shadow .12s ease, opacity .12s ease;
     }
-    .chip.active{
-      box-shadow:0 0 0 3px #0f766e66;
+    .chip.color-chip{
+      color:#fff;
+      border:none;
+      box-shadow:0 1px 4px #0004;
+      opacity:.9;
+    }
+    .chip.color-chip.active{
+      box-shadow:0 0 0 3px #fff6, 0 0 0 5px #0003;
       transform:translateY(-1px);
+      opacity:1;
     }
+
     .preview{display:grid;place-items:center;padding:10px}
     canvas{
       width:min(92%,520px);
@@ -84,31 +94,29 @@
     }
     .hint{font-size:12px;opacity:.7;margin-top:-4px}
     .footer{padding:16px;text-align:center;opacity:.75;font-size:12px}
-    .lucky{
-      margin-top:8px;
-      padding:8px 10px;
-      border-radius:10px;
-      border:1px solid #0001;
-      background:#ffffffd0;
+
+    .lucky-box{
       font-size:13px;
-      line-height:1.5;
-      min-height:40px;
+      text-align:center;
+      padding:6px 10px 10px;
+      min-height:1.4em;
+      color:#064e3b;
     }
-    .lucky-score{font-weight:700;margin-bottom:2px}
+
     .toast{
       position:fixed;
       left:50%;
-      bottom:26px;
+      bottom:20px;
       transform:translateX(-50%) translateY(8px);
-      padding:8px 14px;
-      border-radius:999px;
-      background:rgba(0,0,0,.8);
+      background:rgba(0,0,0,.84);
       color:#fff;
+      padding:8px 16px;
+      border-radius:999px;
       font-size:14px;
       opacity:0;
       pointer-events:none;
-      transition:opacity .2s ease, transform .2s ease;
-      z-index:50;
+      transition:opacity .25s ease, transform .25s ease;
+      z-index:99;
       white-space:nowrap;
     }
     .toast.show{
@@ -139,53 +147,49 @@
           </select>
         </div>
 
-        <div class="row">
-          <label for="template" id="label-template">デザイン</label>
-          <select id="template">
-            <option value="shuri">首里城</option>
-            <option value="ocean">Ocean Sunset</option>
-            <option value="flowers">Ryukyu Flowers</option>
-          </select>
-        </div>
-
-        <div class="row">
-          <label for="name" id="label-name">お名前（任意）</label>
-        </div>
+        <div class="row"><label for="name" id="label-name">お名前（任意）</label></div>
         <div class="row">
           <input id="name" type="text" maxlength="24" placeholder="Traveler" />
         </div>
 
+        <div class="row"><label id="label-bg">背景カラー（SNS映え）</label></div>
+        <div id="palette" class="stack" aria-label="背景カラー"></div>
+
         <div class="row">
-          <label for="nameStyle" id="label-name-style">名前のスタイル</label>
-          <select id="nameStyle">
-            <option value="classic">Classic</option>
-            <option value="handwritten">Handwritten</option>
-            <option value="elegant">Elegant</option>
+          <label for="template" id="label-template">テンプレート</label>
+          <select id="template">
+            <option value="shuri">首里城</option>
+            <option value="ocean">海とサンセット</option>
+            <option value="flowers">琉球の花</option>
+            <option value="character">キャラクター</option>
           </select>
         </div>
 
         <div class="row">
-          <label id="label-bg">背景カラー（SNS映え）</label>
+          <label for="nameStyle" id="label-name-style">名前スタイル</label>
+          <select id="nameStyle">
+            <option value="classic">スタンダード</option>
+            <option value="hand">手書き風</option>
+            <option value="elegant">エレガント</option>
+          </select>
         </div>
-        <div id="palette" class="stack" aria-label="背景カラー"></div>
 
-        <div class="row" style="gap:8px;margin-top:14px">
+        <div class="row" style="gap:8px">
           <button class="btn" id="make" type="button">願いを込めて お守りを作る</button>
           <button class="btn alt" id="save" type="button">PNGを保存</button>
           <button class="btn alt" id="share" type="button">シェアする</button>
         </div>
 
-        <p class="hint">
+        <p class="hint" id="hint-text">
           ※ お名前は保存しません。お守り画像の生成のみに使用します。
         </p>
-
-        <div id="lucky" class="lucky"></div>
       </div>
     </section>
 
     <!-- 右：プレビュー -->
     <section class="card preview">
       <canvas id="view" width="1200" height="1800" aria-label="お守りプレビュー"></canvas>
+      <div id="luckyBox" class="lucky-box"></div>
     </section>
   </main>
 
@@ -196,494 +200,554 @@
   <div id="toast" class="toast" aria-live="polite"></div>
 
 <script>
-  // ========= I18N =========
-  const CANVAS_I18N = {
-    ja: { title:"旅のお守り",    sub:"安全な旅路と長寿を祈って", traveler:"Traveler" },
-    en: { title:"Travel Blessing Charm", sub:"For Safe Journeys & Long Life", traveler:"Traveler" },
-    zh: { title:"祈福护身符",    sub:"旅途平安 · 长命百岁",       traveler:"Traveler" },
-  };
-
-  const UI_I18N = {
-    ja: {
-      heading:"幸運を味わう — 旅の安全と長寿を願って。",
-      sub:"沖縄発・幸運の和牛サンド｜SNS映えする日本のお守りデザインを作ってシェアしよう！",
-      labelLang:"Language",
-      labelTemplate:"デザイン",
-      labelName:"お名前（任意）",
-      labelNameStyle:"名前のスタイル",
-      labelBg:"背景カラー（SNS映え）",
-      btnMake:"願いを込めて お守りを作る",
-      btnSave:"PNGを保存",
-      btnShare:"シェアする",
-      footer:'© Wagyu Blessing — Hashtag: <strong>#wagyu_blessing</strong>',
-      toastWish:"✨お守りに願いを込めました ✨",
-      toastShare:"リンクをコピーしました",
-    },
-    en: {
-      heading:"Taste Good Fortune – Wishing You Safe Travels and Long Life.",
-      sub:"From Okinawa: Wagyu Lucky Sandwich | Create a Japanese omamori-style design and share it on SNS!",
-      labelLang:"Language",
-      labelTemplate:"Design",
-      labelName:"Name (optional)",
-      labelNameStyle:"Name style",
-      labelBg:"Background color (for SNS)",
-      btnMake:"Create my amulet",
-      btnSave:"Save PNG",
-      btnShare:"Share",
-      footer:'© Wagyu Blessing — Hashtag: <strong>#wagyu_blessing</strong>',
-      toastWish:"✨ Your wish has been sealed in the amulet ✨",
-      toastShare:"Link copied to clipboard",
-    },
-    zh: {
-      heading:"品尝幸运 —— 祝您旅途平安、长命百岁。",
-      sub:"来自冲绳的和牛幸运三明治｜制作日本御守风格的设计并分享到 SNS！",
-      labelLang:"语言",
-      labelTemplate:"设计",
-      labelName:"姓名（可选）",
-      labelNameStyle:"名字风格",
-      labelBg:"背景颜色（适合 SNS）",
-      btnMake:"祈愿并生成护身符",
-      btnSave:"保存 PNG",
-      btnShare:"分享",
-      footer:'© Wagyu Blessing — 话题标签：<strong>#wagyu_blessing</strong>',
-      toastWish:"✨ 已把你的心愿注入护身符 ✨",
-      toastShare:"链接已复制",
-    },
-  };
-
-  const NAME_STYLE_LABELS = {
-    ja:{ classic:"クラシック", handwritten:"手書き風", elegant:"エレガント" },
-    en:{ classic:"Classic", handwritten:"Handwritten", elegant:"Elegant" },
-    zh:{ classic:"经典", handwritten:"手写风", elegant:"优雅" },
-  };
-
-  const LAYOUT = {
-    ja:{ titleY:730, titleSize:86, subY:825, subSize:44 },
-    en:{ titleY:730, titleSize:72, subY:820, subSize:40 },
-    zh:{ titleY:730, titleSize:80, subY:825, subSize:44 },
-  };
-
-  const LUCKY_MESSAGES = {
-    ja:[
-      {score:"★★★★★", text:"今日は最高の旅日和。新しい出会いに期待！"},
-      {score:"★★★★☆", text:"和牛パワーで運気アップ。SNS映えスポットをたくさん巡ろう。"},
-      {score:"★★★☆☆", text:"ゆったり穏やかな一日。のんびり沖縄時間を楽しめそうです。"},
-    ],
-    en:[
-      {score:"★★★★★", text:"Wagyu Luck: 96% – Perfect for new adventures."},
-      {score:"★★★★☆", text:"Calm Sea, Safe Journey: 82% – Great day for exploring."},
-      {score:"★★★☆☆", text:"Slow & easy day – take it at your own pace."},
-    ],
-    zh:[
-      {score:"★★★★★", text:"和牛幸运指数 95% —— 非常适合开启新的旅程。"},
-      {score:"★★★★☆", text:"海面平静 · 旅途顺利：82%"},
-      {score:"★★★☆☆", text:"适合慢悠悠地散步拍照的一天。"},
-    ],
-  };
-
-  const BG_COLORS = [
-    { key:"deep",   color:"#0b3b5a", labels:{ja:"深い藍",      en:"Deep Indigo",    zh:"深靛蓝"} },
-    { key:"sakura", color:"#f9c5cf", labels:{ja:"桜ピンク",    en:"Sakura Pink",    zh:"樱花粉"} },
-    { key:"jade",   color:"#0f766e", labels:{ja:"翡翠グリーン", en:"Jade Green",     zh:"翡翠绿"} },
-    { key:"purple-gold", color:"#432f70", labels:{ja:"紫×金",  en:"Purple × Gold",  zh:"紫×金"} },
-    { key:"ryukyu-blue", color:"#0077b6", labels:{ja:"琉球ブルー",en:"Ryukyu Blue",  zh:"琉球蓝"} },
-    { key:"sunset", color:"#f97316", labels:{ja:"サンセット",  en:"Sunset Orange",  zh:"夕阳橙"} },
-    { key:"turquoise", color:"#10b7b0", labels:{ja:"ターコイズ", en:"Turquoise",     zh:"绿松石色"} },
-    { key:"golden-hour", color:"#fbbf24", labels:{ja:"ゴールデンアワー", en:"Golden Hour", zh:"黄金时刻"} },
-  ];
-
-  const TEMPLATE_FILES = {
-    shuri:   "omamori_base.png",
-    ocean:   "omamori_base_ocean.png",
-    flowers: "omamori_base_flowers.png",
-  };
-
-  const TEMPLATE_LABELS = {
-    ja:{ shuri:"首里城", ocean:"海とサンセット", flowers:"琉球の花"},
-    en:{ shuri:"Shuri Castle", ocean:"Ocean & Sunset", flowers:"Ryukyu Flowers"},
-    zh:{ shuri:"首里城", ocean:"海滩日落", flowers:"琉球花纹"},
-  };
-
-  const NAME_FONTS = {
-    classic: '"Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif',
-    handwritten: '"Patrick Hand", "Comic Sans MS", system-ui, -apple-system, "Segoe UI", sans-serif',
-    elegant: '"Georgia", "Times New Roman", "Yu Mincho", serif',
-  };
-
-  // ========= DOM =========
-  const canvas   = document.getElementById("view");
-  const ctx      = canvas.getContext("2d");
-  const langEl   = document.getElementById("lang");
-  const nameEl   = document.getElementById("name");
-  const makeBtn  = document.getElementById("make");
-  const saveBtn  = document.getElementById("save");
-  const shareBtn = document.getElementById("share");
-  const paletteEl= document.getElementById("palette");
-  const templateEl = document.getElementById("template");
-  const nameStyleEl = document.getElementById("nameStyle");
-  const luckyEl  = document.getElementById("lucky");
+  // ===== DOM 取得 =====
+  const canvas    = document.getElementById("view");
+  const ctx       = canvas.getContext("2d");
+  const langEl    = document.getElementById("lang");
+  const nameEl    = document.getElementById("name");
+  const makeBtn   = document.getElementById("make");
+  const saveBtn   = document.getElementById("save");
+  const shareBtn  = document.getElementById("share");
+  const paletteEl = document.getElementById("palette");
+  const templateEl   = document.getElementById("template");
+  const nameStyleEl  = document.getElementById("nameStyle");
+  const luckyBox = document.getElementById("luckyBox");
   const toastEl  = document.getElementById("toast");
 
-  const headingEl = document.getElementById("heading");
-  const subEl     = document.getElementById("subtext");
-  const labelLang = document.getElementById("label-lang");
-  const labelTemplate = document.getElementById("label-template");
-  const labelName = document.getElementById("label-name");
-  const labelNameStyle = document.getElementById("label-name-style");
-  const labelBg   = document.getElementById("label-bg");
-  const footerEl  = document.querySelector(".footer");
+  const headingEl   = document.getElementById("heading");
+  const subEl       = document.getElementById("subtext");
+  const labelLang   = document.getElementById("label-lang");
+  const labelName   = document.getElementById("label-name");
+  const labelBg     = document.getElementById("label-bg");
+  const labelTpl    = document.getElementById("label-template");
+  const labelNameSt = document.getElementById("label-name-style");
+  const footerEl    = document.querySelector(".footer");
+  const hintEl      = document.getElementById("hint-text");
 
-  // ========= 状態 =========
-  let currentLang = langEl.value;
-  let currentBgKey = "turquoise";
-  let currentBgColor = "#10b7b0";
-  let currentTemplate = "shuri";
+  // ===== グローバル状態 =====
+  let currentLang      = "ja";
+  let currentBgKey     = "turquoise";
+  let currentBgColor   = "#10b7b0";
+  let currentTemplate  = "shuri";
   let currentNameStyle = "classic";
 
-  const baseImages = {};
-  const baseLoadedFlags = {};
-  Object.keys(TEMPLATE_FILES).forEach(key=>{
+  let animId = null;
+  let petals = [];
+  let animationStartTime = 0;
+
+  let toastTimer = null;
+
+  // ===== ベース画像（テンプレート） =====
+  const TEMPLATE_INFO = {
+    shuri: {
+      file: "omamori_base.png",
+      labels: { ja: "首里城", en: "Shuri Castle", zh: "首里城" }
+    },
+    ocean: {
+      file: "omamori_base_ocean.png",
+      labels: { ja: "海とサンセット", en: "Ocean Sunset", zh: "海与夕阳" }
+    },
+    flowers: {
+      file: "omamori_base_flowers.png",
+      labels: { ja: "琉球の花", en: "Ryukyu Flowers", zh: "琉球花卉" }
+    },
+    character: {
+      // キャラクターお守り画像（キャラ入りのベース）
+      file: "omamori_base_character.png",
+      labels: { ja: "キャラクター", en: "Lucky Wagyu", zh: "幸运和牛" }
+    },
+  };
+
+  Object.keys(TEMPLATE_INFO).forEach(key => {
     const img = new Image();
-    img.src = TEMPLATE_FILES[key];
-    baseImages[key] = img;
-    baseLoadedFlags[key] = false;
-    img.onload = ()=>{
-      baseLoadedFlags[key] = true;
-      if (key === currentTemplate){
-        renderScene(1,0);
-      }
+    img.src = TEMPLATE_INFO[key].file;
+    TEMPLATE_INFO[key].img = img;
+    img.onload = () => {
+      if (key === currentTemplate) draw(); // 最初の描画
     };
   });
 
-  // 桜アニメ用
-  let petals = [];
-  let animStart = 0;
-  let animFrameId = null;
-  const MAIN_ANIM_DURATION = 900;
-  const PETAL_DURATION_EXTRA = 3800;
+  // ===== キャンバス上の文言 =====
+  const CANVAS_I18N = {
+    ja: {
+      title: "旅のお守り",
+      sub:   "安全な旅路と長寿を祈って",
+      traveler: "Traveler",
+    },
+    en: {
+      title: "Travel Blessing Charm",
+      sub:   "For Safe Journeys & Long Life",
+      traveler: "Traveler",
+    },
+    zh: {
+      title: "祈福护身符",
+      sub:   "旅途平安 · 长命百岁",
+      traveler: "Traveler",
+    },
+  };
 
-  // ========= ユーティリティ =========
-  function getBgColorByKey(key){
-    const item = BG_COLORS.find(c=>c.key===key);
-    return item ? item.color : "#10b7b0";
-  }
-  function getContrastColor(hex){
-    const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex);
-    if(!m) return "#111";
-    const r = parseInt(m[1],16)/255;
-    const g = parseInt(m[2],16)/255;
-    const b = parseInt(m[3],16)/255;
-    const lum = 0.2126*r + 0.7152*g + 0.0722*b;
-    return lum > 0.6 ? "#111" : "#fff";
-  }
-  function showToast(msg){
-    toastEl.textContent = msg;
-    toastEl.classList.add("show");
-    setTimeout(()=>toastEl.classList.remove("show"), 1800);
+  // 言語別レイアウト（英語は少し小さめ）
+  const LAYOUT = {
+    ja: { titleY: 730, subY: 820, titleSize: 86, subSize: 42 },
+    en: { titleY: 720, subY: 810, titleSize: 64, subSize: 34 },
+    zh: { titleY: 730, subY: 820, titleSize: 78, subSize: 40 },
+  };
+
+  // 名前フォント
+  const NAME_FONT_FAMILY = {
+    classic: '"Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif',
+    hand: '"Comic Sans MS", "Noto Sans JP", system-ui, -apple-system',
+    elegant: '"Times New Roman", "Hiragino Mincho ProN", "Yu Mincho", serif',
+  };
+
+  // ===== UI の文言 =====
+  const UI_I18N = {
+    ja: {
+      heading:  "幸運を味わう — 旅の安全と長寿を願って。",
+      sub:      "沖縄発・幸運の和牛サンド｜SNS映えする日本のお守りデザインを作ってシェアしよう！",
+      labelLang:"Language",
+      labelName:"お名前（任意）",
+      labelBg:  "背景カラー（SNS映え）",
+      labelTpl: "テンプレート",
+      labelNameStyle: "名前スタイル",
+      btnMake:  "願いを込めて お守りを作る",
+      btnSave:  "PNGを保存",
+      btnShare: "シェアする",
+      hint:     "※ お名前は保存しません。お守り画像の生成のみに使用します。",
+      footer:   "© Wagyu Blessing — Hashtag: <strong>#wagyu_blessing</strong>",
+      toastBless: "✨ お守りに願いを込めました ✨",
+      toastCopied:"URLをコピーしました",
+      templateOptions: {
+        shuri: "首里城",
+        ocean: "海とサンセット",
+        flowers: "琉球の花",
+        character: "キャラクター",
+      },
+      nameStyles: {
+        classic: "スタンダード",
+        hand: "手書き風",
+        elegant: "エレガント",
+      },
+      luckyPrefix: "ラッキー度：",
+    },
+    en: {
+      heading:  "Taste Good Fortune – Wishing You Safe Travels and Long Life.",
+      sub:      "From Okinawa: Wagyu Lucky Sandwich | Create a Japanese omamori-style design and share it on SNS!",
+      labelLang:"Language",
+      labelName:"Name (optional)",
+      labelBg:  "Background color (for SNS)",
+      labelTpl: "Template",
+      labelNameStyle: "Name style",
+      btnMake:  "Create my amulet",
+      btnSave:  "Save PNG",
+      btnShare: "Share",
+      hint:     "※ Your name is not stored. It is only used to render the amulet image.",
+      footer:   "© Wagyu Blessing — Hashtag: <strong>#wagyu_blessing</strong>",
+      toastBless: "✨ Your wish has been blessed ✨",
+      toastCopied:"URL copied!",
+      templateOptions: {
+        shuri: "Shuri Castle",
+        ocean: "Ocean Sunset",
+        flowers: "Ryukyu Flowers",
+        character: "Lucky Wagyu",
+      },
+      nameStyles: {
+        classic: "Classic",
+        hand: "Handwritten",
+        elegant: "Elegant",
+      },
+      luckyPrefix: "Lucky score: ",
+    },
+    zh: {
+      heading:  "品尝幸运 —— 祝您旅途平安、长命百岁。",
+      sub:      "来自冲绳的和牛幸运三明治｜制作日本御守风格的设计并分享到 SNS！",
+      labelLang:"语言",
+      labelName:"姓名（可选）",
+      labelBg:  "背景颜色（适合 SNS）",
+      labelTpl: "模板",
+      labelNameStyle: "名字字体",
+      btnMake:  "祈愿并生成护身符",
+      btnSave:  "保存 PNG",
+      btnShare: "分享",
+      hint:     "※ 不会保存您的姓名，仅用于生成护身符图片。",
+      footer:   "© Wagyu Blessing — 话题标签：<strong>#wagyu_blessing</strong>",
+      toastBless: "✨ 已为护身符注入祝福 ✨",
+      toastCopied:"已复制链接",
+      templateOptions: {
+        shuri: "首里城",
+        ocean: "海与夕阳",
+        flowers: "琉球花卉",
+        character: "幸运和牛",
+      },
+      nameStyles: {
+        classic: "标准",
+        hand: "手写风",
+        elegant: "优雅",
+      },
+      luckyPrefix: "幸运指数：",
+    },
+  };
+
+  // ===== 背景色候補 =====
+  const BG_COLORS = [
+    { key:"deep",   color:"#0b3b5a", labels:{ ja:"深い藍", en:"Deep Indigo",   zh:"深靛蓝" } },
+    { key:"sakura", color:"#f9c5cf", labels:{ ja:"桜ピンク", en:"Sakura Pink", zh:"樱花粉" } },
+    { key:"jade",   color:"#0f766e", labels:{ ja:"翡翠グリーン", en:"Jade Green", zh:"翡翠绿" } },
+    { key:"purple-gold", color:"#432f70", labels:{ ja:"紫×金", en:"Purple × Gold", zh:"紫×金" } },
+    { key:"ryukyu-blue", color:"#0077b6", labels:{ ja:"琉球ブルー", en:"Ryukyu Blue", zh:"琉球蓝" } },
+    { key:"sunset", color:"#f97316", labels:{ ja:"サンセット", en:"Sunset Orange", zh:"夕阳橙" } },
+    { key:"turquoise", color:"#10b7b0", labels:{ ja:"ターコイズ", en:"Turquoise", zh:"绿松石色" } },
+    { key:"golden-hour", color:"#fbbf24", labels:{ ja:"ゴールデンアワー", en:"Golden Hour", zh:"黄金时刻" } },
+  ];
+
+  function getBgByKey(key){
+    return BG_COLORS.find(c => c.key === key) || BG_COLORS[6]; // default: ターコイズ
   }
 
-  // ========= UI文言反映 =========
-  function applyUILanguage(){
+  // ===== ラッキーメッセージ =====
+  const LUCKY_MESSAGES = {
+    ja: [
+      "ラッキー度：★★★★★ 今日は最高の旅日和です。",
+      "ラッキー度：★★★★☆ 新しい出会いに恵まれそう。",
+      "ラッキー度：★★★☆☆ のんびり、心地よい旅になりそう。",
+    ],
+    en: [
+      "Lucky score: ★★★★★ Perfect day for new adventures.",
+      "Lucky score: ★★★★☆ Calm sea, safe journey ahead.",
+      "Lucky score: ★★★☆☆ Take it slow and enjoy the view.",
+    ],
+    zh: [
+      "幸运指数：★★★★★ 非常适合开启新的旅程。",
+      "幸运指数：★★★★☆ 一路顺风，心情愉快。",
+      "幸运指数：★★★☆☆ 慢慢走，处处是风景。",
+    ],
+  };
+
+  // ===== UIテキストを反映 =====
+  function applyUILanguage() {
     const t = UI_I18N[currentLang];
 
     headingEl.textContent = t.heading;
     subEl.innerHTML       = `${t.sub} <strong>#wagyu_blessing</strong>`;
     labelLang.textContent = t.labelLang;
-    labelTemplate.textContent = t.labelTemplate;
     labelName.textContent = t.labelName;
-    labelNameStyle.textContent = t.labelNameStyle;
     labelBg.textContent   = t.labelBg;
+    labelTpl.textContent  = t.labelTpl;
+    labelNameSt.textContent = t.labelNameStyle;
     makeBtn.textContent   = t.btnMake;
     saveBtn.textContent   = t.btnSave;
     shareBtn.textContent  = t.btnShare;
     footerEl.innerHTML    = t.footer;
+    hintEl.textContent    = t.hint;
 
-    const tplLabels = TEMPLATE_LABELS[currentLang];
-    [...templateEl.options].forEach(opt=>{
-      opt.textContent = tplLabels[opt.value];
+    // テンプレート名
+    const tplOpts = templateEl.querySelectorAll("option");
+    tplOpts.forEach(opt => {
+      const v = opt.value;
+      if (t.templateOptions[v]) opt.textContent = t.templateOptions[v];
     });
 
-    const styleLabels = NAME_STYLE_LABELS[currentLang];
-    nameStyleEl.querySelector('option[value="classic"]').textContent = styleLabels.classic;
-    nameStyleEl.querySelector('option[value="handwritten"]').textContent = styleLabels.handwritten;
-    nameStyleEl.querySelector('option[value="elegant"]').textContent = styleLabels.elegant;
-
-    updateLuckyMessage();
+    // 名前スタイル
+    const nsOpts = nameStyleEl.querySelectorAll("option");
+    nsOpts.forEach(opt => {
+      const v = opt.value;
+      if (t.nameStyles[v]) opt.textContent = t.nameStyles[v];
+    });
   }
 
-  function buildPalette(){
+  // ===== 背景色ボタン作成 =====
+  function buildPalette() {
     paletteEl.innerHTML = "";
-    BG_COLORS.forEach(c=>{
+    BG_COLORS.forEach(c => {
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "chip" + (c.key===currentBgKey ? " active" : "");
+      btn.className = "chip color-chip" + (c.key === currentBgKey ? " active" : "");
       btn.dataset.key = c.key;
       btn.dataset.color = c.color;
       btn.textContent = c.labels[currentLang];
       btn.style.backgroundColor = c.color;
-      btn.style.color = getContrastColor(c.color);
+      btn.style.color = "#ffffff";
       paletteEl.appendChild(btn);
     });
   }
 
-  function updateLuckyMessage(){
+  // ===== トースト表示 =====
+  function showToast(message){
+    if(!toastEl) return;
+    toastEl.textContent = message;
+    toastEl.classList.add("show");
+    if(toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toastEl.classList.remove("show");
+    }, 1800);
+  }
+
+  // ===== Lucky メッセージ表示 =====
+  function showLuckyMessage(){
     const list = LUCKY_MESSAGES[currentLang] || LUCKY_MESSAGES.en;
-    const item = list[Math.floor(Math.random()*list.length)];
-    luckyEl.innerHTML =
-      `<div class="lucky-score">Lucky score: ${item.score}</div>`+
-      `<div class="lucky-text">${item.text}</div>`;
+    const msg = list[Math.floor(Math.random() * list.length)];
+    luckyBox.textContent = msg;
   }
 
-  // ========= テキスト描画 =========
-  function drawText(text,x,y,size,weight){
+  // ===== クエリパラメータ読み込み =====
+  function applyQueryParams() {
+    const params = new URLSearchParams(window.location.search);
+
+    const lang = params.get("lang");
+    if (lang && UI_I18N[lang]) currentLang = lang;
+
+    const bgKey = params.get("bg");
+    if (bgKey && getBgByKey(bgKey)) currentBgKey = bgKey;
+
+    const tpl = params.get("tpl");
+    if (tpl && TEMPLATE_INFO[tpl]) currentTemplate = tpl;
+
+    const style = params.get("style");
+    if (style && NAME_FONT_FAMILY[style]) currentNameStyle = style;
+
+    const nm = params.get("name");
+    if (nm) nameEl.value = decodeURIComponent(nm);
+
+    const bg = getBgByKey(currentBgKey);
+    currentBgKey   = bg.key;
+    currentBgColor = bg.color;
+
+    langEl.value       = currentLang;
+    templateEl.value   = currentTemplate;
+    nameStyleEl.value  = currentNameStyle;
+  }
+
+  // ===== URL 更新 =====
+  function buildShareUrl(){
+    const params = new URLSearchParams();
+    params.set("lang", currentLang);
+    params.set("bg", currentBgKey);
+    params.set("tpl", currentTemplate);
+    params.set("style", currentNameStyle);
+    if (nameEl.value.trim()) {
+      params.set("name", encodeURIComponent(nameEl.value.trim()));
+    }
+    return `${location.origin}${location.pathname}?${params.toString()}`;
+  }
+  function updateUrlState(){
+    const url = buildShareUrl();
+    history.replaceState(null, "", url);
+  }
+
+  // ===== テキスト描画ヘルパー =====
+  function drawText(text, x, y, size, weight, fontFamilyOverride){
     ctx.save();
-    ctx.font = `${weight} ${size}px "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif`;
+    const fam = fontFamilyOverride || '"Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif';
+    ctx.font = `${weight} ${size}px ${fam}`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = "#221811";
-    ctx.fillText(text,x,y);
+    ctx.fillText(text, x, y);
     ctx.restore();
   }
-  function drawName(text,x,y,size,weight){
-    const family = NAME_FONTS[currentNameStyle] || NAME_FONTS.classic;
-    ctx.save();
-    ctx.font = `${weight} ${size}px ${family}`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillStyle = "#221811";
-    ctx.fillText(text,x,y);
-    ctx.restore();
-  }
-  function drawTexts(){
-    const W = canvas.width;
-    const langData = CANVAS_I18N[currentLang] || CANVAS_I18N.ja;
-    const layout   = LAYOUT[currentLang] || LAYOUT.ja;
-    const travelerName = (nameEl.value || "").trim() || langData.traveler;
 
-    drawText(langData.title, W/2, layout.titleY, layout.titleSize, "700");
-    drawText(langData.sub,   W/2, layout.subY,   layout.subSize,   "600");
-    drawName(travelerName,   W/2, 1516, 100, "700");
-    drawText("#wagyu_blessing", W/2, 1618, 50, "600");
-  }
-
-  // ========= 花びら更新＋描画 =========
-  function updateAndDrawPetals(elapsed){
-    if (!petals.length) return;
-    const H = canvas.height;
-
-    petals.forEach(p=>{
-      const t = elapsed - p.startTime;
-      if (t < 0) return;
-      const prog = t / p.life;
-      if (prog >= 1){
-        p.dead = true;
-        return;
-      }
-      const yStart = -80;
-      const yEnd   = H + 120;
-      const y = yStart + (yEnd - yStart)*prog;
-      const x = p.x + Math.sin(p.swayFreq * t + p.seed) * p.swayAmp;
-      const rot = p.rot0 + p.rotSpeed * t;
-
-      let alpha = 1;
-      if (prog > 0.8) alpha = 1 - (prog-0.8)/0.2;
-
-      ctx.save();
-      ctx.translate(x,y);
-      ctx.rotate(rot);
-      ctx.globalAlpha = alpha;
-      const size = p.size;
-      const grad = ctx.createLinearGradient(-size,-size,size,size);
-      grad.addColorStop(0,"rgba(255,255,255,0.95)");
-      grad.addColorStop(1,"rgba(255,192,203,0.85)");
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.moveTo(0,-size);
-      ctx.quadraticCurveTo(size, -size*0.2, 0, size);
-      ctx.quadraticCurveTo(-size, -size*0.2, 0, -size);
-      ctx.fill();
-      ctx.restore();
-    });
-
-    petals = petals.filter(p=>!p.dead);
-  }
-
-  // ========= シーン描画 =========
-  function renderScene(scale=1, elapsed=0, withPetals=false){
+  // ===== ベース描画 =====
+  function baseDraw(scale = 1){
     const W = canvas.width;
     const H = canvas.height;
-    const img = baseImages[currentTemplate];
-    if (!img || !baseLoadedFlags[currentTemplate]) return;
 
-    ctx.clearRect(0,0,W,H);
+    const tplInfo = TEMPLATE_INFO[currentTemplate];
+    const baseImg = tplInfo && tplInfo.img;
+    if (!baseImg || !baseImg.complete) {
+      // 読み込み中でも背景だけ描画しておく
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle = currentBgColor;
+      ctx.fillRect(0,0,W,H);
+      return;
+    }
+
+    ctx.clearRect(0, 0, W, H);
+
+    // 背景色
     ctx.fillStyle = currentBgColor;
     ctx.fillRect(0,0,W,H);
 
-    const cx = W/2, cy = H/2;
     ctx.save();
-    ctx.translate(cx,cy);
-    ctx.scale(scale,scale);
-    ctx.drawImage(img,-W/2,-H/2,W,H);
+    ctx.translate(W/2, H/2);
+    ctx.scale(scale, scale);
+    ctx.translate(-W/2, -H/2);
+
+    // お守り本体
+    ctx.drawImage(baseImg, 0, 0, W, H);
+
+    const langData = CANVAS_I18N[currentLang] || CANVAS_I18N.ja;
+    const layout   = LAYOUT[currentLang] || LAYOUT.ja;
+    const travelerName = (nameEl.value || "").trim() || langData.traveler;
+    const nameFont = NAME_FONT_FAMILY[currentNameStyle] || NAME_FONT_FAMILY.classic;
+
+    // タイトル
+    drawText(langData.title, W/2, layout.titleY, layout.titleSize, "700", null);
+
+    // サブタイトル
+    drawText(langData.sub,   W/2, layout.subY,   layout.subSize, "600", null);
+
+    // Traveler（お名前）
+    drawText(travelerName,   W/2, 1516, 100, "700", nameFont);
+
+    // ハッシュタグ
+    drawText("#wagyu_blessing", W/2, 1618, 50, "600", null);
+
     ctx.restore();
-
-    drawTexts();
-
-    // 光のリング（アニメ中のみ）
-    if (withPetals){
-      const progress = Math.min((elapsed - animStart)/MAIN_ANIM_DURATION,1);
-      if (progress >=0 && progress <=1){
-        const ringCenterY = H*0.23;
-        const maxR = W*0.42;
-        const radius = maxR * progress;
-        const alpha  = 1.0 * (1 - progress);
-
-        ctx.save();
-        ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
-        ctx.lineWidth = 12;
-        ctx.beginPath();
-        ctx.arc(cx, ringCenterY, radius, 0, Math.PI*2);
-        ctx.stroke();
-        ctx.restore();
-      }
-      updateAndDrawPetals(elapsed);
-    }
   }
 
-  // ========= アニメーション =========
-  function startWishAnimation(){
-    animStart = performance.now();
-
-    // 花びら生成（多め）
+  // ===== 桜アニメーション =====
+  function createPetals(){
     const W = canvas.width;
-    petals = [];
-    const count = 80;
-    for (let i=0;i<count;i++){
-      petals.push({
+    const H = canvas.height;
+    const count = 70; // たっぷり
+    const arr = [];
+    for(let i=0;i<count;i++){
+      arr.push({
         x: Math.random()*W,
-        size: 12 + Math.random()*18,
-        swayAmp: 40 + Math.random()*60,
-        swayFreq: 0.002 + Math.random()*0.002,
-        rot0: Math.random()*Math.PI*2,
-        rotSpeed: (Math.random()*0.002 + 0.001)*(Math.random()<0.5?-1:1),
-        life: MAIN_ANIM_DURATION + PETAL_DURATION_EXTRA + Math.random()*800,
-        startTime: animStart + Math.random()*400,
-        seed: Math.random()*10,
-        dead:false,
+        y: -Math.random()*H,
+        size: 14 + Math.random()*16,
+        speed: 40 + Math.random()*45,
+        swing: 20 + Math.random()*25,
+        seed: Math.random()*Math.PI*2,
+        angle: Math.random()*Math.PI*2,
+        spin: (Math.random()*0.8+0.3) * (Math.random()<0.5?-1:1),
       });
     }
-
-    if (animFrameId) cancelAnimationFrame(animFrameId);
-    animFrameId = requestAnimationFrame(stepAnimation);
+    return arr;
   }
 
-  function stepAnimation(time){
-    const elapsed = time;
-    const base = animStart;
-    const t = elapsed - base;
-    const progress = Math.min(Math.max(t / MAIN_ANIM_DURATION,0),1);
-    const pulse = Math.sin(progress*Math.PI);
-    const scale = 1 + 0.08*pulse;
-
-    renderScene(scale, elapsed, true);
-
-    const stillFalling = petals.some(p=>!p.dead);
-    if (t < MAIN_ANIM_DURATION + PETAL_DURATION_EXTRA || stillFalling){
-      animFrameId = requestAnimationFrame(stepAnimation);
-    }else{
-      animFrameId = null;
-      petals = [];
-      renderScene(1,0,false);
-    }
+  function drawPetal(p){
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.angle);
+    ctx.scale(1.1, 0.8);
+    ctx.beginPath();
+    const s = p.size;
+    ctx.moveTo(0, -s/2);
+    ctx.quadraticCurveTo(s/2, 0, 0, s/2);
+    ctx.quadraticCurveTo(-s/2, 0, 0, -s/2);
+    ctx.fillStyle = "rgba(255, 192, 203, 0.9)";
+    ctx.fill();
+    ctx.restore();
   }
 
-  // ========= URL 読み込み & 生成 =========
-  function initFromURL(){
-    try{
-      const params = new URLSearchParams(window.location.search);
-      const urlLang = params.get("lang");
-      if (urlLang && CANVAS_I18N[urlLang]) currentLang = urlLang;
+  function drawGlow(progress){
+    const W = canvas.width;
+    const H = canvas.height;
+    const cx = W/2;
+    const cy = 430;
+    const maxR = 420;
+    const r   = maxR * (0.4 + 0.6*progress);
+    const alpha = 0.95 * (1 - progress);
 
-      const urlBg = params.get("bg");
-      if (urlBg && BG_COLORS.some(c=>c.key===urlBg)){
-        currentBgKey = urlBg;
-        currentBgColor = getBgColorByKey(urlBg);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    const g = ctx.createRadialGradient(cx, cy, r*0.1, cx, cy, r);
+    g.addColorStop(0, "rgba(255,255,255,1)");
+    g.addColorStop(0.3, "rgba(255,255,255,0.6)");
+    g.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function playBlessingAnimation(){
+    if (animId) cancelAnimationFrame(animId);
+
+    petals = createPetals();
+    animationStartTime = performance.now();
+    let lastTime = animationStartTime;
+
+    function frame(now){
+      const dt = (now - lastTime) / 1000;
+      lastTime = now;
+      const elapsed = now - animationStartTime;
+      const duration = 1500;
+      const progress = Math.min(elapsed / duration, 1);
+
+      const scale = 1 + 0.10 * Math.sin(Math.min(progress*1.2,1) * Math.PI); // ふわっと
+
+      // 位置更新
+      const W = canvas.width;
+      const H = canvas.height;
+      petals.forEach(p => {
+        p.y += p.speed * dt;
+        p.x += Math.sin(elapsed/600 + p.seed) * p.swing * dt;
+        p.angle += p.spin * dt;
+      });
+
+      baseDraw(scale);
+      drawGlow(Math.min(elapsed/600,1));
+
+      petals.forEach(p => drawPetal(p));
+
+      const stillFalling = petals.some(p => p.y < H + 40);
+      if (stillFalling){
+        animId = requestAnimationFrame(frame);
+      } else {
+        animId = null;
+        baseDraw(1);
       }
-
-      const urlTemplate = params.get("template");
-      if (urlTemplate && TEMPLATE_FILES[urlTemplate]) currentTemplate = urlTemplate;
-
-      const urlStyle = params.get("style");
-      if (urlStyle && NAME_FONTS[urlStyle]) currentNameStyle = urlStyle;
-
-      const urlName = params.get("name");
-      if (urlName) nameEl.value = urlName;
-
-      langEl.value = currentLang;
-      templateEl.value = currentTemplate;
-      nameStyleEl.value = currentNameStyle;
-    }catch(e){
-      // 失敗してもデフォルトで続行
     }
+    animId = requestAnimationFrame(frame);
   }
 
-  function buildShareURL(){
-    const url = new URL(window.location.href);
-    const params = url.searchParams;
-    params.set("lang", currentLang);
-    params.set("bg", currentBgKey);
-    params.set("template", currentTemplate);
-    params.set("style", currentNameStyle);
-    const nameVal = (nameEl.value || "").trim();
-    if (nameVal){
-      params.set("name", nameVal);
-    }else{
-      params.delete("name");
-    }
-    url.search = params.toString();
-    return url.toString();
+  // ===== メイン描画ラッパー =====
+  function draw(){
+    baseDraw(1);
   }
 
-  // ========= イベント =========
-  paletteEl.addEventListener("click",(e)=>{
+  // ===== イベント設定 =====
+  paletteEl.addEventListener("click", e => {
     const target = e.target;
     if (!target.classList.contains("chip")) return;
     const key = target.dataset.key;
-    currentBgKey = key;
-    currentBgColor = target.dataset.color || getBgColorByKey(key);
-    [...paletteEl.querySelectorAll(".chip")].forEach(b=>b.classList.remove("active"));
-    target.classList.add("active");
-    renderScene(1,0,false);
+    const bg = getBgByKey(key);
+    currentBgKey   = bg.key;
+    currentBgColor = bg.color;
+
+    buildPalette();
+    draw();
+    updateUrlState();
   });
 
-  langEl.addEventListener("change",()=>{
+  langEl.addEventListener("change", () => {
     currentLang = langEl.value;
     applyUILanguage();
     buildPalette();
-    renderScene(1,0,false);
+    draw();
+    updateUrlState();
   });
 
-  templateEl.addEventListener("change",()=>{
+  templateEl.addEventListener("change", () => {
     currentTemplate = templateEl.value;
-    if (baseLoadedFlags[currentTemplate]){
-      renderScene(1,0,false);
-    }
+    draw();
+    updateUrlState();
   });
 
-  nameEl.addEventListener("input",()=>{ renderScene(1,0,false); });
-
-  nameStyleEl.addEventListener("change",()=>{
+  nameStyleEl.addEventListener("change", () => {
     currentNameStyle = nameStyleEl.value;
-    renderScene(1,0,false);
+    draw();
+    updateUrlState();
   });
 
-  makeBtn.addEventListener("click",()=>{
-    const ui = UI_I18N[currentLang] || UI_I18N.ja;
-    showToast(ui.toastWish);
-    updateLuckyMessage();
-    startWishAnimation();
+  nameEl.addEventListener("input", () => {
+    draw();
+    updateUrlState();
   });
 
-  saveBtn.addEventListener("click",()=>{
+  makeBtn.addEventListener("click", () => {
+    draw();
+    playBlessingAnimation();
+    showLuckyMessage();
+    const t = UI_I18N[currentLang] || UI_I18N.ja;
+    showToast(t.toastBless);
+    updateUrlState();
+  });
+
+  saveBtn.addEventListener("click", () => {
     const data = canvas.toDataURL("image/png");
     const a = document.createElement("a");
     a.href = data;
@@ -691,35 +755,28 @@
     a.click();
   });
 
-  shareBtn.addEventListener("click",async()=>{
-    const ui = UI_I18N[currentLang] || UI_I18N.ja;
-    const shareUrl = buildShareURL();
+  shareBtn.addEventListener("click", async () => {
+    const url = buildShareUrl();
     try{
       if (navigator.share){
-        await navigator.share({url:shareUrl,text:"#wagyu_blessing"});
-      }else if (navigator.clipboard){
-        await navigator.clipboard.writeText(shareUrl);
-        showToast(ui.toastShare);
-      }else{
-        window.prompt("Copy this URL", shareUrl);
+        await navigator.share({ url, text: "#wagyu_blessing" });
+      } else if (navigator.clipboard){
+        await navigator.clipboard.writeText(url);
+        const t = UI_I18N[currentLang] || UI_I18N.ja;
+        showToast(t.toastCopied);
+      } else {
+        prompt("Copy this URL", url);
       }
     }catch(e){
-      // キャンセル時などは無視
+      console.error(e);
     }
   });
 
-  // ========= 初期化 =========
-  function init(){
-    initFromURL();
-    applyUILanguage();
-    buildPalette();
-    updateLuckyMessage();
-    // 画像読み込みが終わっていれば描画
-    if (baseLoadedFlags[currentTemplate]){
-      renderScene(1,0,false);
-    }
-  }
-  init();
+  // ===== 初期表示 =====
+  applyQueryParams();
+  applyUILanguage();
+  buildPalette();
+  draw();
 </script>
 </body>
 </html>
