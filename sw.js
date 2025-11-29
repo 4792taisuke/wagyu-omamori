@@ -1,17 +1,23 @@
-// sw.js
 const CACHE_NAME = "wagyu-omamori-v1";
-const APP_SHELL = [
+
+// 必要なファイルを列挙（最低限）
+const ASSETS = [
   "./",
   "./index.html",
-  "./manifest.webmanifest"
+  "./manifest.webmanifest",
+  "./omamori_base.png",
+  "./omamori_base_ocean.png",
+  "./omamori_base_flowers.png",
+  "./omamori_base_character.png",
+  "./icons/wagyu-omamori-192.png",
+  "./icons/wagyu-omamori-512.png"
 ];
 
-// インストール時：基本ファイルをキャッシュ
+// インストール時にキャッシュ
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
-  self.skipWaiting();
 });
 
 // 古いキャッシュを削除
@@ -25,32 +31,13 @@ self.addEventListener("activate", (event) => {
       )
     )
   );
-  self.clients.claim();
 });
 
-// オフライン対応
+// ネット優先＋フォールバックでキャッシュ
 self.addEventListener("fetch", (event) => {
-  // ページ遷移（navigate）は index.html を返す
-  if (event.request.mode === "navigate") {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match("./index.html"))
-    );
-    return;
-  }
-
-  // それ以外のリクエストは、キャッシュ→ネットワークの順
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return (
-        response ||
-        fetch(event.request).then((networkResp) => {
-          // 取得できたものは後からキャッシュしておく（任意）
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, networkResp.clone());
-          });
-          return networkResp;
-        })
-      );
-    })
+    fetch(event.request).catch(() =>
+      caches.match(event.request, { ignoreSearch: true })
+    )
   );
 });
