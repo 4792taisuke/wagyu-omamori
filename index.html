@@ -3,231 +3,173 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
   <title>Wagyu Blessing Amulet | #wagyu_blessing</title>
-  <meta name="description" content="Create a Japanese omamori-style blessing card for travelers. Okinawa Wagyu sandwich × lucky amulet generator.">
-
-  <!-- PWA / アイコン関連 -->
-  <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#0f766e">
-  <link rel="apple-touch-icon" href="icons/wagyu-omamori-192.png">
-
+  <meta name="description" content="Create a Japanese Omamori-style blessing card for travelers.">
+  <meta name="theme-color" content="#10b7b0" />
+  <link rel="manifest" href="manifest.webmanifest" />
   <style>
     :root{
-      --bg-page: #ece8d3;
+      --bg: #10b7b0;
       --ink: #0f2b2e;
-      --panel: #fefdf8;
-      --btn-main: #125a5a;
-      --btn-main-hover: #0b4848;
-      --chip-border: #0002;
+      --panel: #f5e7c4;
+      --btn: #125a5a;
     }
-
-    * { box-sizing: border-box; }
-
-    html,body{
-      height:100%;
+    html,body{height:100%}
+    body{
       margin:0;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
       color:var(--ink);
-      background:var(--bg-page);
+      background:#ece8d3;
     }
-
-    body{
-      display:flex;
-      flex-direction:column;
-    }
-
-    header{
-      padding:18px 22px 8px;
-    }
-
-    h1{
-      margin:0 0 6px;
-      font-size:clamp(22px,3.2vw,34px);
-    }
-
-    .sub{
-      opacity:.85;
-      font-size:14px;
-      line-height:1.5;
-    }
-
+    header{padding:18px 22px}
+    h1{margin:0 0 6px;font-size:clamp(22px,3.2vw,36px)}
+    .sub{opacity:.8}
     .wrap{
-      flex:1;
       display:grid;
       gap:20px;
       align-items:flex-start;
       grid-template-columns:minmax(280px,420px) 1fr;
       padding:0 22px 28px;
     }
-
     .card{
-      background:var(--panel);
+      background:#fffffff0;
       border:1px solid #0001;
       border-radius:16px;
       box-shadow:0 10px 24px #0001;
     }
-
-    .panel{
-      padding:16px;
-      position:relative;
-      z-index:1;
-    }
-
-    .controls .row{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      margin:10px 0;
-      flex-wrap:wrap;
-    }
-
-    input,select,button{
-      font-size:15px;
-      font-family:inherit;
-    }
-
+    .panel{padding:16px;position:relative;z-index:1;}
+    .controls .row{display:flex;gap:10px;align-items:center;margin:10px 0}
+    input,select,button{font-size:16px}
     input[type=text],select{
       width:100%;
       padding:10px 12px;
       border-radius:12px;
       border:1px solid #0002;
-      background:#fff;
+      box-sizing:border-box;
     }
-
     button{
       cursor:pointer;
       border:none;
       border-radius:12px;
       padding:10px 14px;
       font-weight:600;
-      transition:background .18s, transform .08s, box-shadow .18s;
     }
-
-    .btn-main{
-      background:var(--btn-main);
-      color:#fff;
-      box-shadow:0 3px 8px #0003;
-    }
-    .btn-main:hover{
-      background:var(--btn-main-hover);
-      transform:translateY(-1px);
-      box-shadow:0 6px 14px #0004;
-    }
-    .btn-ghost{
-      background:#fff;
-      color:var(--btn-main);
-      border:1px solid var(--btn-main);
-    }
-    .btn-ghost:hover{
-      background:#f2faf9;
-    }
-
-    .stack{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-    }
-
+    .btn{background:var(--btn);color:#fff}
+    .btn.alt{background:#fff;border:1px solid var(--btn);color:var(--btn)}
+    .stack{display:flex;flex-wrap:wrap;gap:10px}
     .chip{
       padding:8px 14px;
       border-radius:999px;
-      border:1px solid var(--chip-border);
+      border:1px solid #0002;
       background:#fff;
       cursor:pointer;
       user-select:none;
       font-size:14px;
-      min-width:88px;
-      text-align:center;
-      transition:transform .06s, box-shadow .12s, background .12s, color .12s, border-color .12s;
     }
     .chip.active{
+      background:#0f766e;
       color:#fff;
       border-color:#0f766e;
-      box-shadow:0 2px 8px #0003;
     }
-    .chip:active{
-      transform:scale(.97);
-    }
-
-    .preview{
-      display:grid;
-      place-items:center;
-      padding:10px;
-    }
-
+    .preview{display:grid;place-items:center;padding:10px}
     canvas{
-      width:min(96%,540px);
+      width:min(92%,520px);
       height:auto;
-      max-height:80vh;
+      max-height:78vh;
       aspect-ratio:2/3;
       display:block;
       background:transparent;
     }
-
-    @media (max-width:940px){
-      .wrap{ grid-template-columns:1fr; }
-      canvas{ width:min(100%,560px); }
+    @media (max-width:900px){
+      .wrap{grid-template-columns:1fr}
+      canvas{width:min(96%,560px)}
     }
+    .hint{font-size:12px;opacity:.7;margin-top:-4px}
+    .footer{padding:16px;text-align:center;opacity:.75}
 
-    .hint{
-      font-size:12px;
-      opacity:.7;
-      margin-top:-4px;
-    }
-
-    .footer{
-      padding:12px 18px 16px;
-      text-align:center;
-      opacity:.78;
-      font-size:12px;
-    }
-
-    .meta-row{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    .meta-row > .field{
-      flex:1 1 130px;
-    }
-
-    /* Lucky meter */
-    #lucky-box{
-      margin-top:12px;
-      padding:10px 12px;
+    /* Lucky メーター */
+    .lucky-box{
+      margin-top:10px;
+      padding:8px 10px;
       border-radius:12px;
-      background:#f3faf5;
-      border:1px dashed #10b98155;
+      background:#fef9e6;
+      border:1px solid #facc6b;
       font-size:13px;
-      min-height:40px;
-      display:flex;
-      flex-direction:column;
-      gap:4px;
+      display:none;
     }
-    #lucky-score{
+    .lucky-score{
       font-weight:700;
+      margin-bottom:2px;
     }
-    #lucky-message{
-      opacity:.85;
+    .lucky-text{
+      font-size:12px;
     }
 
-    /* Toast */
+    /* --- インストール案内ボックス（多言語対応） --- */
+    .install-card {
+      margin-top: 8px;
+      border-left: 4px solid #fbbf24;
+      background: #fffdf5;
+    }
+    .install-title {
+      margin: 0 0 6px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .install-lead {
+      margin: 0 0 10px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .install-section {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px dashed #e5dec4;
+    }
+    .install-section h3 {
+      margin: 0 0 4px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .install-steps {
+      margin: 0 0 4px 18px;
+      padding: 0;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .install-steps li {
+      margin-bottom: 2px;
+    }
+    .install-note {
+      margin-top: 10px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #6b6450;
+    }
+    .install-lang {
+      display: none;
+    }
+    .install-lang.active {
+      display: block;
+    }
+    .install-title [data-lang] {
+      display: none;
+    }
+
+    /* Toast メッセージ */
     .toast{
       position:fixed;
       left:50%;
-      bottom:22px;
-      transform:translateX(-50%) translateY(12px);
-      background:rgba(0,0,0,.82);
+      bottom:24px;
+      transform:translateX(-50%) translateY(10px);
+      background:rgba(0,0,0,.78);
       color:#fff;
-      padding:10px 14px;
+      padding:8px 16px;
       border-radius:999px;
       font-size:13px;
-      box-shadow:0 8px 20px #0006;
       opacity:0;
       pointer-events:none;
-      transition:opacity .25s ease, transform .25s ease;
+      transition:opacity .3s, transform .3s;
       z-index:50;
       white-space:nowrap;
     }
@@ -250,7 +192,6 @@
     <!-- 左：操作エリア -->
     <section class="card panel">
       <div class="controls">
-        <!-- 言語 -->
         <div class="row">
           <label for="lang" id="label-lang">Language</label>
           <select id="lang">
@@ -260,52 +201,175 @@
           </select>
         </div>
 
-        <!-- 名前 -->
         <div class="row">
-          <label for="name" id="label-name">お名前（任意）</label>
+          <label for="template" id="label-template">Template</label>
         </div>
+        <div class="row">
+          <select id="template">
+            <option value="shuri">Shuri Castle</option>
+            <option value="ocean">Ocean & Sunset</option>
+            <option value="flowers">Ryukyu Flowers</option>
+            <option value="character">Character</option>
+          </select>
+        </div>
+
+        <div class="row"><label for="name" id="label-name">お名前（任意）</label></div>
         <div class="row">
           <input id="name" type="text" maxlength="24" placeholder="Traveler" />
         </div>
 
-        <!-- 名前スタイル ＋ テンプレート -->
-        <div class="row meta-row">
-          <div class="field">
-            <label for="nameStyle" id="label-style">Name Style</label>
-            <select id="nameStyle">
-              <option value="classic">Classic</option>
-              <option value="hand">Handwritten</option>
-              <option value="elegant">Elegant</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="template" id="label-template">Template</label>
-            <select id="template"></select>
-          </div>
+        <div class="row">
+          <label for="nameStyle" id="label-style">Name Style</label>
+        </div>
+        <div class="row">
+          <select id="nameStyle">
+            <option value="classic">Classic</option>
+            <option value="hand">Handwritten</option>
+            <option value="elegant">Elegant</option>
+          </select>
         </div>
 
-        <!-- 背景色 -->
-        <div class="row">
-          <label id="label-bg">背景カラー（SNS映え）</label>
-        </div>
+        <div class="row"><label id="label-bg">背景カラー（SNS映え）</label></div>
         <div id="palette" class="stack" aria-label="背景カラー"></div>
 
-        <!-- ボタン -->
         <div class="row" style="gap:8px">
-          <button class="btn-main" id="make" type="button">願いを込めて お守りを作る</button>
-          <button class="btn-ghost" id="save" type="button">PNGを保存</button>
-          <button class="btn-ghost" id="share" type="button">シェアする</button>
+          <button class="btn" id="make" type="button">願いを込めて お守りを作る</button>
+          <button class="btn alt" id="save" type="button">PNGを保存</button>
+          <button class="btn alt" id="share" type="button">シェアする</button>
+        </div>
+
+        <div id="lucky-box" class="lucky-box">
+          <div id="lucky-score" class="lucky-score"></div>
+          <div id="lucky-text" class="lucky-text"></div>
         </div>
 
         <p class="hint">
-          ※ お名前は保存しません。お守り画像の生成のみに使用します。
+          ※ お名前・設定はサーバーには保存されません。この画面の中だけで使われます。
+        </p>
+      </div>
+    </section>
+
+    <!-- ★ インストール案内ボックス（多言語） -->
+    <section class="card panel install-card">
+      <h2 class="install-title">
+        <span data-lang="ja">スマホに「お守りアプリ」を入れる</span>
+        <span data-lang="en">Add the omamori app to your phone</span>
+        <span data-lang="zh">把御守应用添加到手机</span>
+      </h2>
+
+      <!-- 日本語 -->
+      <div class="install-lang" data-lang="ja">
+        <p class="install-lead">
+          ホーム画面に追加しておくと、いつでもすぐに<br>
+          「旅のお守り」を開けます。
         </p>
 
-        <!-- Lucky meter -->
-        <div id="lucky-box">
-          <div id="lucky-score"></div>
-          <div id="lucky-message"></div>
+        <div class="install-section">
+          <h3>Android（Chrome）の場合</h3>
+          <ol class="install-steps">
+            <li>画面下 or 上に「アプリをインストール」などのバナーが出たらタップ</li>
+            <li>表示されない場合は、右上 <strong>︙</strong> メニューを開く</li>
+            <li><strong>「ホーム画面に追加」</strong> または <strong>「アプリをインストール」</strong> を選ぶ</li>
+          </ol>
         </div>
+
+        <div class="install-section">
+          <h3>iPhone（Safari）の場合</h3>
+          <ol class="install-steps">
+            <li>下の <strong>共有ボタン（□に↑）</strong> をタップ</li>
+            <li>メニューをスクロールして <strong>「ホーム画面に追加」</strong> を選ぶ</li>
+            <li>名前を確認して <strong>追加</strong> をタップ</li>
+          </ol>
+        </div>
+
+        <div class="install-section">
+          <h3>PCブラウザ（Chrome）の場合</h3>
+          <ol class="install-steps">
+            <li>アドレスバー右側の <strong>「インストール」アイコン</strong> をクリック</li>
+            <li>または右上 <strong>︙</strong> → <strong>「お守りアプリをインストール」</strong></li>
+          </ol>
+        </div>
+
+        <p class="install-note">
+          ※ インストールすると、スマホのホーム画面に<br>
+          和風のお守りアイコンが表示されます。
+        </p>
+      </div>
+
+      <!-- English -->
+      <div class="install-lang" data-lang="en">
+        <p class="install-lead">
+          Add this site to your home screen<br>
+          and open your travel omamori with one tap.
+        </p>
+
+        <div class="install-section">
+          <h3>Android (Chrome)</h3>
+          <ol class="install-steps">
+            <li>If a banner like “Install app” appears, tap it.</li>
+            <li>If not, open the menu <strong>︙</strong> in the top-right.</li>
+            <li>Choose <strong>“Add to Home screen”</strong> or <strong>“Install app”</strong>.</li>
+          </ol>
+        </div>
+
+        <div class="install-section">
+          <h3>iPhone (Safari)</h3>
+          <ol class="install-steps">
+            <li>Tap the <strong>Share</strong> button (square with an ↑).</li>
+            <li>Scroll the menu and tap <strong>“Add to Home Screen”</strong>.</li>
+            <li>Check the name and tap <strong>Add</strong>.</li>
+          </ol>
+        </div>
+
+        <div class="install-section">
+          <h3>Desktop browser (Chrome)</h3>
+          <ol class="install-steps">
+            <li>Click the <strong>Install</strong> icon at the right of the address bar,</li>
+            <li>or open <strong>︙</strong> → <strong>“Install app”</strong>.</li>
+          </ol>
+        </div>
+
+        <p class="install-note">
+          The omamori icon will appear on your home screen like an app.
+        </p>
+      </div>
+
+      <!-- 中文 -->
+      <div class="install-lang" data-lang="zh">
+        <p class="install-lead">
+          添加到主屏幕后，只要轻轻一点，<br>
+          就能随时打开「旅行御守」。
+        </p>
+
+        <div class="install-section">
+          <h3>Android（Chrome）</h3>
+          <ol class="install-steps">
+            <li>如果出现“安装应用”等提示条，请点击。</li>
+            <li>没有显示时，点击右上角 <strong>︙</strong> 菜单。</li>
+            <li>选择 <strong>“添加到主屏幕”</strong> 或 <strong>“安装应用”</strong>。</li>
+          </ol>
+        </div>
+
+        <div class="install-section">
+          <h3>iPhone（Safari）</h3>
+          <ol class="install-steps">
+            <li>点击底部的 <strong>分享按钮（□和向上箭头）</strong>。</li>
+            <li>在菜单中找到并点击 <strong>“添加到主屏幕”</strong>。</li>
+            <li>确认名称后点击 <strong>添加</strong>。</li>
+          </ol>
+        </div>
+
+        <div class="install-section">
+          <h3>电脑浏览器（Chrome）</h3>
+          <ol class="install-steps">
+            <li>点击地址栏右侧的 <strong>“安装” 图标</strong>，</li>
+            <li>或点击右上角 <strong>︙</strong> → <strong>“安装应用”</strong>。</li>
+          </ol>
+        </div>
+
+        <p class="install-note">
+          安装后，主屏幕上会出现和风御守图标，看起来就像一个应用。
+        </p>
       </div>
     </section>
 
@@ -319,258 +383,238 @@
     © Wagyu Blessing — Hashtag: <strong>#wagyu_blessing</strong>
   </div>
 
-  <!-- Toast -->
   <div id="toast" class="toast"></div>
 
 <script>
-  // ========= DOM =========
+  // ===== DOM 取得 =====
   const canvas   = document.getElementById("view");
   const ctx      = canvas.getContext("2d");
   const langEl   = document.getElementById("lang");
   const nameEl   = document.getElementById("name");
-  const nameStyleEl = document.getElementById("nameStyle");
-  const tplEl    = document.getElementById("template");
   const makeBtn  = document.getElementById("make");
   const saveBtn  = document.getElementById("save");
   const shareBtn = document.getElementById("share");
   const paletteEl= document.getElementById("palette");
+  const templateEl = document.getElementById("template");
+  const nameStyleEl = document.getElementById("nameStyle");
 
   const headingEl = document.getElementById("heading");
   const subEl     = document.getElementById("subtext");
   const labelLang = document.getElementById("label-lang");
   const labelName = document.getElementById("label-name");
-  const labelStyle= document.getElementById("label-style");
-  const labelTpl  = document.getElementById("label-template");
   const labelBg   = document.getElementById("label-bg");
+  const labelTemplate = document.getElementById("label-template");
+  const labelStyle    = document.getElementById("label-style");
   const footerEl  = document.querySelector(".footer");
 
-  const luckyScoreEl   = document.getElementById("lucky-score");
-  const luckyMessageEl = document.getElementById("lucky-message");
-  const toastEl        = document.getElementById("toast");
+  const installLangBlocks = document.querySelectorAll(".install-lang");
+  const installTitleSpans = document.querySelectorAll(".install-title [data-lang]");
 
-  // ========= State =========
-  let currentLang       = "ja";
-  let currentBg         = "#10b7b0";
-  let currentTpl        = "shuri";
-  let currentNameStyle  = "classic";
+  const luckyBox    = document.getElementById("lucky-box");
+  const luckyScoreEl= document.getElementById("lucky-score");
+  const luckyTextEl = document.getElementById("lucky-text");
+  const toastEl     = document.getElementById("toast");
 
-  let baseImage   = new Image();
-  let baseLoaded  = false;
+  // ===== グローバル状態 =====
+  let currentLang   = langEl.value || "ja";
+  let currentBg     = "#10b7b0";           // 初期ターコイズ
+  let currentTemplate = "shuri";
+  let currentNameStyle = "classic";
 
-  // アニメーション状態
-  let animRunning = false;
-  let animStart   = 0;
-  const ANIM_DURATION = 2200;
-  let petals = [];
-  let animScale = 1;
-  let ringStrength = 0;
+  // ===== 文字なしお守り画像 =====
+  const base = new Image();
+  let baseLoaded = false;
 
-  // ========= Canvas Text I18N =========
-  const TEXT_I18N = {
+  base.onload = () => {
+    baseLoaded = true;
+    draw();
+  };
+
+  const TEMPLATE_SRC = {
+    shuri: "omamori_base.png",
+    ocean: "omamori_base_ocean.png",
+    flowers: "omamori_base_flowers.png",
+    character: "omamori_base_character.png",
+  };
+
+  function setTemplate(tplKey){
+    const src = TEMPLATE_SRC[tplKey] || TEMPLATE_SRC.shuri;
+    baseLoaded = false;
+    base.src = src;
+  }
+
+  // ===== キャンバス上の文言 =====
+  const I18N = {
     ja: {
       title: "旅のお守り",
-      sub:   "安全な旅路と長寿を祈って",
-      traveler: "Traveler"
+      sub: "安全な旅路と長寿を祈って",
+      traveler: "Traveler",
     },
     en: {
       title: "Travel Blessing Charm",
       sub:   "For Safe Journeys & Long Life",
-      traveler: "Traveler"
+      traveler: "Traveler",
     },
     zh: {
       title: "祈福护身符",
       sub:   "旅途平安 · 长命百岁",
-      traveler: "Traveler"
-    }
+      traveler: "Traveler",
+    },
   };
 
-  const LAYOUT = {
-    ja: { titleY: 720, subY: 830, titleSize: 88, subSize: 46 },
-    en: { titleY: 710, subY: 820, titleSize: 78, subSize: 40 },
-    zh: { titleY: 710, subY: 820, titleSize: 80, subSize: 42 }
-  };
-
-  // ========= UI I18N =========
+  // ===== UI の文言 =====
   const UI_I18N = {
     ja: {
       heading:  "幸運を味わう — 旅の安全と長寿を願って。",
       sub:      "沖縄発・幸運の和牛サンド｜SNS映えする日本のお守りデザインを作ってシェアしよう！",
       labelLang:"Language",
       labelName:"お名前（任意）",
-      labelStyle:"名前フォント",
-      labelTpl:  "テンプレート",
-      labelBg:   "背景カラー（SNS映え）",
+      labelBg:  "背景カラー（SNS映え）",
+      labelTemplate: "テンプレート",
+      labelStyle: "Name Style",
       btnMake:  "願いを込めて お守りを作る",
       btnSave:  "PNGを保存",
       btnShare: "シェアする",
       footer:   "© Wagyu Blessing — Hashtag: <strong>#wagyu_blessing</strong>",
-      toast:    "✨ お守りに願いを込めました ✨",
-      luckyPrefix: "ラッキー度：",
-      luckyMessages: [
-        "Wagyu Luck 92% – 新しい冒険に最高の日！",
-        "Calm Sea, Safe Journey: 78% – 今日は波も心もおだやか。",
-        "88% – きっと素敵な出会いがあります。",
-        "99% – 旅の神様が微笑んでいます。"
-      ]
     },
     en: {
       heading:  "Taste Good Fortune – Wishing You Safe Travels and Long Life.",
       sub:      "From Okinawa: Wagyu Lucky Sandwich | Create a Japanese omamori-style design and share it on SNS!",
       labelLang:"Language",
       labelName:"Name (optional)",
-      labelStyle:"Name Style",
-      labelTpl:  "Template",
-      labelBg:   "Background color (for SNS)",
-      btnMake:  "Bless my amulet",
+      labelBg:  "Background color (for SNS)",
+      labelTemplate: "Template",
+      labelStyle: "Name Style",
+      btnMake:  "Create my amulet",
       btnSave:  "Save PNG",
       btnShare: "Share",
       footer:   "© Wagyu Blessing — Hashtag: <strong>#wagyu_blessing</strong>",
-      toast:    "✨ Your wish has been blessed into the amulet ✨",
-      luckyPrefix: "Lucky score:",
-      luckyMessages: [
-        "Wagyu Luck: 92% – Perfect for new adventures.",
-        "Calm Sea, Safe Journey: 78%.",
-        "88% – Today is a great day to travel.",
-        "99% – Fortune is strongly on your side."
-      ]
     },
     zh: {
       heading:  "品尝幸运 —— 祝您旅途平安、长命百岁。",
       sub:      "来自冲绳的和牛幸运三明治｜制作日本御守风格的设计并分享到 SNS！",
       labelLang:"语言",
       labelName:"姓名（可选）",
-      labelStyle:"名字字体",
-      labelTpl:  "模板",
-      labelBg:   "背景颜色（适合 SNS）",
-      btnMake:  "把愿望注入护身符",
+      labelBg:  "背景颜色（适合 SNS）",
+      labelTemplate: "模板",
+      labelStyle: "Name Style",
+      btnMake:  "祈愿并生成护身符",
       btnSave:  "保存 PNG",
       btnShare: "分享",
       footer:   "© Wagyu Blessing — 话题标签：<strong>#wagyu_blessing</strong>",
-      toast:    "✨ 您的愿望已经注入护身符 ✨",
-      luckyPrefix: "幸运指数：",
-      luckyMessages: [
-        "和牛幸运：92% —— 适合开启新的旅程。",
-        "平静海面 · 安心旅程：78%。",
-        "88% —— 今天很适合出门旅行。",
-        "99% —— 幸运女神正在对你微笑。"
-      ]
-    }
+    },
   };
 
-  // ========= 背景色 =========
+  // ===== 背景色候補 =====
   const BG_COLORS = [
     {
       key: "deep",
       color: "#0b3b5a",
-      labels: { ja: "深い藍", en: "Deep Indigo", zh: "深靛蓝" }
+      labels: { ja: "深い藍", en: "Deep Indigo", zh: "深靛蓝" },
     },
     {
       key: "sakura",
       color: "#f9c5cf",
-      labels: { ja: "桜ピンク", en: "Sakura Pink", zh: "樱花粉" }
+      labels: { ja: "桜ピンク", en: "Sakura Pink", zh: "樱花粉" },
     },
     {
       key: "jade",
       color: "#0f766e",
-      labels: { ja: "翡翠グリーン", en: "Jade Green", zh: "翡翠绿" }
+      labels: { ja: "翡翠グリーン", en: "Jade Green", zh: "翡翠绿" },
     },
     {
       key: "purple-gold",
       color: "#432f70",
-      labels: { ja: "紫×金", en: "Purple × Gold", zh: "紫×金" }
+      labels: { ja: "紫×金", en: "Purple × Gold", zh: "紫×金" },
     },
     {
       key: "ryukyu-blue",
       color: "#0077b6",
-      labels: { ja: "琉球ブルー", en: "Ryukyu Blue", zh: "琉球蓝" }
+      labels: { ja: "琉球ブルー", en: "Ryukyu Blue", zh: "琉球蓝" },
     },
     {
       key: "sunset",
       color: "#f97316",
-      labels: { ja: "サンセット", en: "Sunset Orange", zh: "夕阳橙" }
+      labels: { ja: "サンセット", en: "Sunset Orange", zh: "夕阳橙" },
     },
     {
       key: "turquoise",
       color: "#10b7b0",
-      labels: { ja: "ターコイズ", en: "Turquoise", zh: "绿松石色" }
+      labels: { ja: "ターコイズ", en: "Turquoise", zh: "绿松石色" },
     },
-    {
-      key: "golden-hour",
-      color: "#f8c365",
-      labels: { ja: "ゴールデンアワー", en: "Golden Hour", zh: "金色黄昏" }
-    }
   ];
 
-  // ========= テンプレート =========
-  const TEMPLATE_DEFS = [
-    {
-      key: "shuri",
-      src: "omamori_base.png",
-      labels: { ja: "首里城", en: "Shuri Castle", zh: "首里城" }
-    },
-    {
-      key: "ocean",
-      src: "omamori_base_ocean.png",
-      labels: { ja: "海とサンセット", en: "Ocean & Sunset", zh: "海与日落" }
-    },
-    {
-      key: "flowers",
-      src: "omamori_base_flowers.png",
-      labels: { ja: "琉球の花", en: "Ryukyu Flowers", zh: "琉球之花" }
-    },
-    {
-      key: "character",
-      src: "omamori_base_character.png",
-      labels: { ja: "キャラクター用", en: "Character Frame", zh: "角色用底图" }
-    }
-  ];
-
-  const templateMap = Object.fromEntries(
-    TEMPLATE_DEFS.map(t => [t.key, t])
-  );
-
-  // ========= 名前スタイル =========
-  const NAME_STYLE_FONT = {
-    classic: '700 100px "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif',
-    hand:    '700 100px "Comic Sans MS", "Yuji Syuku", system-ui, -apple-system, sans-serif',
-    elegant: '700 100px "Georgia", "Times New Roman", "Noto Serif JP", serif'
+  // ===== 名前フォントスタイル =====
+  const NAME_FONTS = {
+    classic: '"Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif',
+    hand: '"Comic Sans MS", "Bradley Hand", system-ui, sans-serif',
+    elegant: '"Georgia", "Times New Roman", serif',
   };
 
-  // ========= ユーティリティ =========
-  function getQueryParams() {
-    const params = new URLSearchParams(window.location.search);
-    return {
-      lang: params.get("lang") || "ja",
-      bg:   params.get("bg"),
-      name: params.get("name"),
-      tpl:  params.get("tpl") || "shuri",
-      style:params.get("style") || "classic"
-    };
-  }
+  // ===== キャンバス上レイアウト（言語別） =====
+  const LAYOUT = {
+    ja: {
+      titleY: 750,
+      titleSize: 90,
+      subY: 840,
+      subSize: 46,
+      nameY: 1516,
+      nameSize: 100,
+      hashY: 1618,
+      hashSize: 50,
+    },
+    en: {
+      titleY: 730,
+      titleSize: 78,
+      subY: 820,
+      subSize: 40,
+      nameY: 1516,
+      nameSize: 96,
+      hashY: 1618,
+      hashSize: 48,
+    },
+    zh: {
+      titleY: 750,
+      titleSize: 86,
+      subY: 840,
+      subSize: 46,
+      nameY: 1516,
+      nameSize: 100,
+      hashY: 1618,
+      hashSize: 50,
+    },
+  };
 
-  function updateURLFromState() {
-    const params = new URLSearchParams();
-    params.set("lang", currentLang);
-    params.set("bg",   currentBg);
-    params.set("tpl",  currentTpl);
-    params.set("style",currentNameStyle);
-    const name = (nameEl.value || "").trim();
-    if (name) params.set("name", name);
+  // ===== ラッキー度メッセージ =====
+  const LUCKY_MESSAGES = {
+    ja: [
+      { score: "Wagyu Luck: 96% ★★★★★", text: "今日は新しい冒険にぴったりの日です。" },
+      { score: "Wagyu Luck: 88% ★★★★☆", text: "ゆったり旅を楽しむのに最高のコンディション。" },
+      { score: "Wagyu Luck: 78% ★★★☆☆", text: "落ち着いた旅路。小さなラッキーを探してみて。" },
+      { score: "Calm Sea, Safe Journey: 82%", text: "波も心もおだやか。安全第一で楽しみましょう。" },
+    ],
+    en: [
+      { score: "Wagyu Luck: 92% ★★★★★", text: "Perfect for new adventures today." },
+      { score: "Wagyu Luck: 84% ★★★★☆", text: "Great day to explore and try something new." },
+      { score: "Calm Sea, Safe Journey: 78%", text: "Gentle vibes for a relaxed, safe trip." },
+      { score: "Wagyu Luck: 65% ★★★☆☆", text: "Take it slow and enjoy the little moments." },
+    ],
+    zh: [
+      { score: "和牛幸运值：93% ★★★★★", text: "今天非常适合开启新的旅程。" },
+      { score: "和牛幸运值：85% ★★★★☆", text: "悠闲出行的好日子，记得多拍几张照片。" },
+      { score: "平安指数：80%", text: "心情平静，旅途顺利，适合慢慢享受。" },
+      { score: "和牛幸运值：70% ★★★☆☆", text: "放慢脚步，小小的惊喜正在等你。" },
+    ],
+  };
 
-    const newUrl = `${location.pathname}?${params.toString()}`;
-    history.replaceState(null, "", newUrl);
-    return location.origin + location.pathname + "?" + params.toString();
-  }
+  // ===== トーストメッセージ =====
+  const TOAST_MESSAGES = {
+    ja: "✨お守りに願いを込めました ✨",
+    en: "✨ Your wish has been sent to the omamori ✨",
+    zh: "✨ 已把你的心愿注入御守 ✨",
+  };
 
-  function showToast(message) {
-    toastEl.textContent = message;
-    toastEl.classList.add("show");
-    setTimeout(() => {
-      toastEl.classList.remove("show");
-    }, 1800);
-  }
-
-  // ========= UI テキスト反映 =========
+  // ===== UIテキストを反映 =====
   function applyUILanguage() {
     const t = UI_I18N[currentLang];
 
@@ -578,283 +622,329 @@
     subEl.innerHTML       = `${t.sub} <strong>#wagyu_blessing</strong>`;
     labelLang.textContent = t.labelLang;
     labelName.textContent = t.labelName;
-    labelStyle.textContent= t.labelStyle;
-    labelTpl.textContent  = t.labelTpl;
     labelBg.textContent   = t.labelBg;
+    labelTemplate.textContent = t.labelTemplate;
+    labelStyle.textContent    = t.labelStyle;
     makeBtn.textContent   = t.btnMake;
     saveBtn.textContent   = t.btnSave;
     shareBtn.textContent  = t.btnShare;
     footerEl.innerHTML    = t.footer;
   }
 
+  // ===== インストール案内ボックスの言語切り替え =====
+  function updateInstallGuideLanguage() {
+    const lang = currentLang || "ja";
+
+    installLangBlocks.forEach((el) => {
+      el.classList.toggle("active", el.dataset.lang === lang);
+    });
+
+    installTitleSpans.forEach((span) => {
+      span.style.display = (span.dataset.lang === lang) ? "inline" : "none";
+    });
+  }
+
+  // ===== 背景色ボタンを描き直す =====
   function buildPalette() {
     paletteEl.innerHTML = "";
     BG_COLORS.forEach(c => {
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "chip";
-      if (c.color === currentBg) btn.classList.add("active");
+      btn.className = "chip" + (c.color === currentBg ? " active" : "");
       btn.dataset.color = c.color;
-      btn.style.background = c.color;
-      if (c.color === currentBg) {
-        btn.style.color = "#fff";
-      }
-      btn.textContent = c.labels[currentLang];
+      btn.dataset.key   = c.key;
+      btn.textContent   = c.labels[currentLang];
       paletteEl.appendChild(btn);
     });
   }
 
-  function buildTemplateSelect() {
-    tplEl.innerHTML = "";
-    TEMPLATE_DEFS.forEach(tpl => {
-      const opt = document.createElement("option");
-      opt.value = tpl.key;
-      opt.textContent = tpl.labels[currentLang];
-      if (tpl.key === currentTpl) opt.selected = true;
-      tplEl.appendChild(opt);
-    });
-  }
+  // 背景色ボタンクリック
+  paletteEl.addEventListener("click", (e) => {
+    const target = e.target;
+    if (!target.classList.contains("chip")) return;
 
-  // ========= Base 画像読み込み =========
-  function loadBaseForTemplate(key) {
-    const def = templateMap[key] || templateMap["shuri"];
-    currentTpl = def.key;
-    baseLoaded = false;
-    baseImage = new Image();
-    baseImage.onload = () => {
-      baseLoaded = true;
-      draw();
-    };
-    baseImage.src = def.src;
-  }
+    [...paletteEl.querySelectorAll(".chip")].forEach(b => b.classList.remove("active"));
+    target.classList.add("active");
 
-  // ========= 描画ヘルパー =========
-  function drawText(text, x, y, sizePx, weight, align="center", fontOverride=null) {
+    currentBg = target.dataset.color;
+    draw();
+  });
+
+  // ===== キャンバスに文字を描くヘルパー =====
+  function drawText(text, x, y, size, weight, fontOverride) {
     ctx.save();
-    ctx.textAlign = align;
+    const family = fontOverride || '"Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif';
+    ctx.font = `${weight} ${size}px ${family}`;
+    ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    const baseFont = fontOverride || `${weight} ${sizePx}px "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif`;
-    ctx.font = baseFont;
     ctx.fillStyle = "#221811";
     ctx.fillText(text, x, y);
     ctx.restore();
   }
 
-  function drawPetal(p) {
-    ctx.save();
-    ctx.translate(p.x, p.y);
-    ctx.rotate(p.rot);
-    ctx.scale(p.scale, p.scale);
-    ctx.beginPath();
-    ctx.moveTo(0, -8);
-    ctx.quadraticCurveTo(6, -2, 0, 10);
-    ctx.quadraticCurveTo(-6, -2, 0, -8);
-    ctx.closePath();
-    ctx.fillStyle = `rgba(255, 192, 203, ${p.alpha})`;
-    ctx.fill();
-    ctx.restore();
-  }
-
-  // ========= メイン描画 =========
-  function draw() {
+  // ===== メイン描画 =====
+  function draw(scale = 1) {
     if (!baseLoaded) return;
 
     const W = canvas.width;
     const H = canvas.height;
 
-    ctx.clearRect(0, 0, W, H);
-
-    // 背景色
-    ctx.fillStyle = currentBg;
-    ctx.fillRect(0, 0, W, H);
-
-    // スケール付き描画
-    ctx.save();
-    ctx.translate(W / 2, H / 2);
-    ctx.scale(animScale, animScale);
-    ctx.translate(-W / 2, -H / 2);
-
-    // お守り本体
-    ctx.drawImage(baseImage, 0, 0, W, H);
-
-    // テキスト
-    const langData = TEXT_I18N[currentLang] || TEXT_I18N.ja;
+    const langData = I18N[currentLang] || I18N.ja;
     const layout   = LAYOUT[currentLang] || LAYOUT.ja;
     const travelerName = (nameEl.value || "").trim() || langData.traveler;
 
+    // 背景色
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = currentBg;
+    ctx.fillRect(0, 0, W, H);
+
+    // お守り本体＋テキスト（スケール適用）
+    const cx = W / 2;
+    const cy = H / 2;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(scale, scale);
+    ctx.translate(-cx, -cy);
+
+    // お守り画像
+    ctx.drawImage(base, 0, 0, W, H);
+
+    // タイトル
     drawText(langData.title, W / 2, layout.titleY, layout.titleSize, "700");
+    // サブタイトル
     drawText(langData.sub,   W / 2, layout.subY,   layout.subSize,   "600");
-
     // Traveler（名前）
-    const nameFont = NAME_STYLE_FONT[currentNameStyle] || NAME_STYLE_FONT.classic;
-    drawText(travelerName, W / 2, 1516, 100, "700", "center", nameFont);
-
+    const nameFontFamily = NAME_FONTS[currentNameStyle] || NAME_FONTS.classic;
+    drawText(travelerName,  W / 2, layout.nameY,  layout.nameSize,  "700", nameFontFamily);
     // ハッシュタグ
-    drawText("#wagyu_blessing", W / 2, 1618, 50, "600");
-
-    // 光のリング
-    if (ringStrength > 0) {
-      const alpha = ringStrength;
-      const radius = 320 + 90 * ringStrength;
-      ctx.save();
-      ctx.strokeStyle = `rgba(246, 216, 137, ${alpha})`;
-      ctx.lineWidth = 22;
-      ctx.beginPath();
-      ctx.arc(W / 2, 350, radius, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    // 桜
-    if (petals.length) {
-      petals.forEach(drawPetal);
-    }
+    drawText("#wagyu_blessing", W / 2, layout.hashY, layout.hashSize, "600");
 
     ctx.restore();
   }
 
-  // ========= アニメーション =========
-  function createPetals() {
-    const W = canvas.width;
-    const H = canvas.height;
-    const count = 60; // 多め
-    const arr = [];
+  // ===== 桜の花びらアニメ用 =====
+  function createPetals(count, duration, H) {
+    const petals = [];
     for (let i = 0; i < count; i++) {
-      arr.push({
-        x: Math.random() * W,
-        y: -Math.random() * 200,
-        vy: 40 + Math.random() * 40,
-        vx: -20 + Math.random() * 40,
-        rot: Math.random() * Math.PI * 2,
-        vr: -0.02 + Math.random() * 0.04,
-        scale: 0.6 + Math.random() * 0.9,
-        alpha: 0.9
+      const delay = Math.random() * 300; // 0〜0.3秒くらい遅れて落ち始める
+      petals.push({
+        delay,
+        x: Math.random() * canvas.width,
+        yStart: -100 - Math.random() * 200,
+        yEnd: H + 80,
+        swing: 40 + Math.random() * 40,
+        phase: Math.random() * Math.PI * 2,
+        omega: 1 + Math.random() * 1.5,
+        rotation: Math.random() * Math.PI * 2,
+        rotationSpeed: (Math.random() * 2 - 1) * 0.05,
+        scale: 0.5 + Math.random() * 0.7,
       });
     }
-    return arr;
+    return petals;
   }
 
-  function updateAnimation(timestamp) {
-    if (!animRunning) return;
-
-    const elapsed = timestamp - animStart;
-    const t = Math.min(elapsed / ANIM_DURATION, 1);
-
-    // ふわっとスケール
-    if (t < 0.5) {
-      animScale = 1 + 0.08 * (t / 0.5);
-    } else {
-      animScale = 1.08 - 0.08 * ((t - 0.5) / 0.5);
-    }
-
-    // 光のリング（先に強く、その後フェード）
-    ringStrength = 1 - t;
-
-    // 花びら
-    const dt = 16 / 1000; // おおよそのフレーム時間
+  function drawPetals(elapsed, duration, petals) {
     const W = canvas.width;
     const H = canvas.height;
 
-    petals.forEach(p => {
-      p.y += p.vy * dt;
-      p.x += p.vx * dt;
-      p.rot += p.vr;
-      // 画面下に行くほどゆっくりフェードアウト
-      const ratio = p.y / H;
-      p.alpha = Math.max(0, 1 - ratio);
+    ctx.save();
+    petals.forEach(petal => {
+      const localT = elapsed - petal.delay;
+      if (localT <= 0) return;
+
+      const life = duration - petal.delay;
+      const k = Math.min(localT / life, 1); // 0〜1
+
+      const y = petal.yStart + (petal.yEnd - petal.yStart) * k;
+      const x = petal.x + Math.sin(petal.phase + petal.omega * k * 4) * petal.swing;
+
+      // 下の方でふわっと消える
+      let alpha = 0.9;
+      if (k > 0.8) {
+        alpha = 0.9 * (1 - (k - 0.8) / 0.2); // 最後の20%でフェードアウト
+      }
+
+      const size = 18 * petal.scale;
+
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(petal.rotation + petal.rotationSpeed * (localT / 16));
+      ctx.globalAlpha = alpha;
+
+      ctx.fillStyle = "#ffe4f2";
+      ctx.beginPath();
+      ctx.moveTo(0, -size * 0.6);
+      ctx.quadraticCurveTo(size * 0.5, -size * 0.2, 0, size * 0.8);
+      ctx.quadraticCurveTo(-size * 0.5, -size * 0.2, 0, -size * 0.6);
+      ctx.fill();
+
+      ctx.restore();
     });
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
 
-    petals = petals.filter(p => p.y < H + 40 && p.alpha > 0.02);
+  // ===== アニメーション（ふわっと拡大＋光リング＋桜） =====
+  function triggerOmamoriAnimation() {
+    if (!baseLoaded) return;
 
-    draw();
+    const duration = 1800; // ms
+    const start = performance.now();
+    const petals = createPetals(80, duration, canvas.height);
 
-    if (elapsed < ANIM_DURATION || petals.length > 0) {
-      requestAnimationFrame(updateAnimation);
-    } else {
-      animRunning = false;
-      animScale = 1;
-      ringStrength = 0;
-      petals = [];
-      draw();
+    function frame(now) {
+      const elapsed = now - start;
+      const p = Math.min(elapsed / duration, 1);
+
+      // ふわっとスケール（最初40%くらい）
+      const pulsePhase = Math.min(p / 0.4, 1);
+      const scale = 1 + 0.10 * Math.sin(pulsePhase * Math.PI); // 少し大きく
+
+      draw(scale);
+
+      const W = canvas.width;
+      const H = canvas.height;
+
+      // 光のリング（上の方）
+      if (p < 0.55) {
+        const ringP = p / 0.55;
+        const maxR = W * 0.65;
+        const r = ringP * maxR;
+        const alpha = 0.8 * (1 - ringP);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(W / 2, H * 0.38, r, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+        ctx.lineWidth = 12 * (1 - ringP) + 3;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 桜吹雪
+      drawPetals(elapsed, duration, petals);
+
+      if (p < 1) {
+        requestAnimationFrame(frame);
+      } else {
+        draw(); // 最終状態で静止
+      }
     }
+
+    requestAnimationFrame(frame);
   }
 
-  function triggerBlessAnimation() {
-    animRunning = true;
-    animStart   = performance.now();
-    animScale   = 1;
-    ringStrength= 1;
-    petals      = createPetals();
-    requestAnimationFrame(updateAnimation);
+  // ===== Lucky メッセージ更新 =====
+  function updateLuckyMessage() {
+    const pool = LUCKY_MESSAGES[currentLang] || LUCKY_MESSAGES.ja;
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    luckyScoreEl.textContent = pick.score;
+    luckyTextEl.textContent  = pick.text;
+    luckyBox.style.display   = "block";
   }
 
-  // ========= Lucky メーター =========
-  function updateLucky() {
-    const t = UI_I18N[currentLang];
-    const msgs = t.luckyMessages;
-    const msg = msgs[Math.floor(Math.random() * msgs.length)];
-    const stars = "★★★★★☆☆☆☆☆".slice(0, 5); // 表示用ダミー
-    luckyScoreEl.textContent = `${t.luckyPrefix} ★★★★☆`;
-    luckyMessageEl.textContent = msg;
+  // ===== Toast 表示 =====
+  function showToast(message) {
+    if (!toastEl) return;
+    toastEl.textContent = message;
+    toastEl.classList.add("show");
+    setTimeout(() => {
+      toastEl.classList.remove("show");
+    }, 1600);
   }
 
-  // ========= イベント =========
-  paletteEl.addEventListener("click", (e) => {
-    const target = e.target;
-    if (!target.classList.contains("chip")) return;
+  // ===== URL へ状態を保存する用 =====
+  function buildShareURL() {
+    const params = new URLSearchParams();
+    params.set("lang", currentLang);
+    params.set("bg", currentBg);
+    params.set("tpl", currentTemplate);
+    params.set("style", currentNameStyle);
+    if (nameEl.value.trim()) {
+      params.set("name", nameEl.value.trim());
+    }
+    return `${location.origin}${location.pathname}?${params.toString()}`;
+  }
 
-    const color = target.dataset.color;
-    if (!color) return;
+  // ===== URL から状態を復元 =====
+  function applyStateFromURL() {
+    const params = new URLSearchParams(location.search);
 
-    currentBg = color;
+    const lang = params.get("lang");
+    const bgParam = params.get("bg");
+    const tpl = params.get("tpl");
+    const style = params.get("style");
+    const name = params.get("name");
 
-    [...paletteEl.querySelectorAll(".chip")].forEach(b => {
-      b.classList.remove("active");
-      b.style.color = "";
-    });
-    target.classList.add("active");
-    target.style.color = "#fff";
+    if (lang && I18N[lang]) {
+      currentLang = lang;
+      langEl.value = lang;
+    }
 
-    updateURLFromState();
+    if (bgParam) {
+      let match =
+        BG_COLORS.find(c => c.key === bgParam) ||
+        BG_COLORS.find(c => c.color.toLowerCase() === bgParam.toLowerCase());
+      if (match) {
+        currentBg = match.color;
+      }
+    }
+
+    if (tpl && TEMPLATE_SRC[tpl]) {
+      currentTemplate = tpl;
+      templateEl.value = tpl;
+    } else {
+      templateEl.value = currentTemplate;
+    }
+
+    if (style && NAME_FONTS[style]) {
+      currentNameStyle = style;
+      nameStyleEl.value = style;
+    } else {
+      nameStyleEl.value = currentNameStyle;
+    }
+
+    if (name) {
+      nameEl.value = name;
+    }
+
+    setTemplate(currentTemplate);
+  }
+
+  // ===== イベント設定 =====
+  makeBtn.addEventListener("click", () => {
+    // 再描画 & アニメーション
     draw();
-  });
-
-  tplEl.addEventListener("change", () => {
-    currentTpl = tplEl.value;
-    updateURLFromState();
-    loadBaseForTemplate(currentTpl);
+    triggerOmamoriAnimation();
+    updateLuckyMessage();
+    const msg = TOAST_MESSAGES[currentLang] || TOAST_MESSAGES.ja;
+    showToast(msg);
   });
 
   langEl.addEventListener("change", () => {
     currentLang = langEl.value;
     applyUILanguage();
     buildPalette();
-    buildTemplateSelect();
-    updateLucky();
-    updateURLFromState();
+    updateInstallGuideLanguage();
     draw();
   });
 
   nameEl.addEventListener("input", () => {
-    updateURLFromState();
     draw();
+  });
+
+  templateEl.addEventListener("change", () => {
+    currentTemplate = templateEl.value;
+    setTemplate(currentTemplate);
   });
 
   nameStyleEl.addEventListener("change", () => {
     currentNameStyle = nameStyleEl.value;
-    updateURLFromState();
     draw();
   });
 
-  makeBtn.addEventListener("click", () => {
-    draw();
-    triggerBlessAnimation();
-    updateLucky();
-    const t = UI_I18N[currentLang];
-    showToast(t.toast);
-    updateURLFromState();
-  });
-
+  // PNG保存
   saveBtn.addEventListener("click", () => {
     const data = canvas.toDataURL("image/png");
     const a = document.createElement("a");
@@ -863,59 +953,32 @@
     a.click();
   });
 
+  // シェア
   shareBtn.addEventListener("click", () => {
-    const url = updateURLFromState();
+    const url = buildShareURL();
+    const text = "#wagyu_blessing";
     if (navigator.share) {
-      navigator.share({
-        title: "Wagyu Blessing Amulet",
-        text: "#wagyu_blessing",
-        url
-      }).catch(() => {});
+      navigator.share({ url, text });
     } else if (navigator.clipboard) {
-      navigator.clipboard.writeText(url).then(() => {
-        alert("このお守りのURLをコピーしました：\n" + url);
-      });
+      navigator.clipboard.writeText(url);
+      alert("このお守りのURLをコピーしました:\n" + url);
     } else {
-      alert(url);
+      prompt("このURLをコピーしてください", url);
     }
   });
 
-  // ========= 初期化 =========
-  function initFromURL() {
-    const params = getQueryParams();
+  // ===== 初期表示 =====
+  applyStateFromURL();
+  applyUILanguage();
+  buildPalette();
+  updateInstallGuideLanguage();
 
-    currentLang = ["ja","en","zh"].includes(params.lang) ? params.lang : "ja";
-    currentBg   = params.bg || currentBg;
-    currentTpl  = templateMap[params.tpl] ? params.tpl : "shuri";
-    currentNameStyle = NAME_STYLE_FONT[params.style] ? params.style : "classic";
-
-    langEl.value = currentLang;
-    nameStyleEl.value = currentNameStyle;
-
-    if (params.name) {
-      nameEl.value = params.name;
-    }
-  }
-
-  function init() {
-    initFromURL();
-    applyUILanguage();
-    buildPalette();
-    buildTemplateSelect();
-    updateLucky();
-    loadBaseForTemplate(currentTpl);
-  }
-
-  init();
-
-  // ========= Service Worker 登録 =========
+  // PWA: Service Worker 登録
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker
-        .register("./sw.js", { scope: "./" })
-        .catch(err => {
-          console.error("SW registration failed:", err);
-        });
+      navigator.serviceWorker.register("sw.js").catch((err) => {
+        console.log("ServiceWorker registration failed:", err);
+      });
     });
   }
 </script>
