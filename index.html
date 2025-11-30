@@ -151,7 +151,7 @@
         </div>
 
         <div class="row">
-          <label for="template" id="label-template">Template</label>
+          <label for="template" id="label-template">テンプレート</label>
         </div>
         <div class="row">
           <select id="template">
@@ -175,6 +175,8 @@
             <option value="classic">Classic</option>
             <option value="hand">Handwritten</option>
             <option value="elegant">Elegant</option>
+            <option value="bold">Bold</option>
+            <option value="pop">Pop</option>
           </select>
         </div>
 
@@ -257,6 +259,29 @@
     ocean: "omamori_base_ocean.png",
     flowers: "omamori_base_flowers.png",
     character: "omamori_base_character.png",
+  };
+
+  const TEMPLATE_I18N = {
+    shuri: {
+      ja: "首里城",
+      en: "Shuri Castle",
+      zh: "首里城",
+    },
+    ocean: {
+      ja: "海とサンセット",
+      en: "Ocean & Sunset",
+      zh: "海与夕阳",
+    },
+    flowers: {
+      ja: "琉球の花",
+      en: "Ryukyu Flowers",
+      zh: "琉球之花",
+    },
+    character: {
+      ja: "キャラクター",
+      en: "Character",
+      zh: "角色",
+    },
   };
 
   function setTemplate(tplKey){
@@ -371,6 +396,36 @@
     classic: '"Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif',
     hand: '"Comic Sans MS", "Bradley Hand", system-ui, sans-serif',
     elegant: '"Georgia", "Times New Roman", serif',
+    bold: '"Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif',
+    pop: '"Trebuchet MS", system-ui, -apple-system, sans-serif',
+  };
+
+  const NAME_STYLE_I18N = {
+    classic: {
+      ja: "クラシック",
+      en: "Classic",
+      zh: "经典",
+    },
+    hand: {
+      ja: "手書き風",
+      en: "Handwritten",
+      zh: "手写风",
+    },
+    elegant: {
+      ja: "エレガント",
+      en: "Elegant",
+      zh: "优雅",
+    },
+    bold: {
+      ja: "ボールド",
+      en: "Bold",
+      zh: "粗体",
+    },
+    pop: {
+      ja: "ポップ",
+      en: "Pop",
+      zh: "流行风",
+    },
   };
 
   // ===== キャンバス上レイアウト（言語別） =====
@@ -451,6 +506,37 @@
     saveBtn.textContent   = t.btnSave;
     shareBtn.textContent  = t.btnShare;
     footerEl.innerHTML    = t.footer;
+
+    buildTemplateOptions();
+    buildNameStyleOptions();
+  }
+
+  // ===== テンプレートの選択肢を再構成 =====
+  function buildTemplateOptions() {
+    const order = ["shuri","ocean","flowers","character"];
+    templateEl.innerHTML = "";
+    order.forEach(key => {
+      const opt = document.createElement("option");
+      opt.value = key;
+      const labels = TEMPLATE_I18N[key];
+      opt.textContent = labels ? labels[currentLang] : key;
+      if (key === currentTemplate) opt.selected = true;
+      templateEl.appendChild(opt);
+    });
+  }
+
+  // ===== Name Style の選択肢を再構成 =====
+  function buildNameStyleOptions() {
+    const order = ["classic","hand","elegant","bold","pop"];
+    nameStyleEl.innerHTML = "";
+    order.forEach(key => {
+      const opt = document.createElement("option");
+      opt.value = key;
+      const labels = NAME_STYLE_I18N[key];
+      opt.textContent = labels ? labels[currentLang] : key;
+      if (key === currentNameStyle) opt.selected = true;
+      nameStyleEl.appendChild(opt);
+    });
   }
 
   // ===== 背景色ボタンを描き直す =====
@@ -509,7 +595,6 @@
     ctx.fillStyle = currentBg;
     ctx.fillRect(0, 0, W, H);
 
-    // お守り本体＋テキスト（スケール適用）
     const cx = W / 2;
     const cy = H / 2;
 
@@ -538,17 +623,17 @@
   function createPetals(count, duration, H) {
     const petals = [];
     for (let i = 0; i < count; i++) {
-      const delay = Math.random() * 300; // 0〜0.3秒くらい遅れて落ち始める
+      const delay = Math.random() * 400; // 少しずつ遅れて落ち始める
       petals.push({
         delay,
         x: Math.random() * canvas.width,
-        yStart: -100 - Math.random() * 200,
-        yEnd: H + 80,
-        swing: 40 + Math.random() * 40,
+        yStart: -120 - Math.random() * 200,
+        yEnd: H + 120,
+        swing: 60 + Math.random() * 60,          // 左右に大きくふわふわ
         phase: Math.random() * Math.PI * 2,
-        omega: 1 + Math.random() * 1.5,
+        omega: 0.6 + Math.random() * 0.8,        // ゆっくり揺れる
         rotation: Math.random() * Math.PI * 2,
-        rotationSpeed: (Math.random() * 2 - 1) * 0.05,
+        rotationSpeed: (Math.random() * 2 - 1) * 0.04,
         scale: 0.5 + Math.random() * 0.7,
       });
     }
@@ -570,10 +655,9 @@
       const y = petal.yStart + (petal.yEnd - petal.yStart) * k;
       const x = petal.x + Math.sin(petal.phase + petal.omega * k * 4) * petal.swing;
 
-      // 下の方でふわっと消える
       let alpha = 0.9;
-      if (k > 0.8) {
-        alpha = 0.9 * (1 - (k - 0.8) / 0.2); // 最後の20%でフェードアウト
+      if (k > 0.85) {
+        alpha = 0.9 * (1 - (k - 0.85) / 0.15); // 最後の15%でふわっと消える
       }
 
       const size = 18 * petal.scale;
@@ -600,7 +684,7 @@
   function triggerOmamoriAnimation() {
     if (!baseLoaded) return;
 
-    const duration = 1800; // ms
+    const duration = 3000; // 少し長めにして、ゆっくり落ちる
     const start = performance.now();
     const petals = createPetals(80, duration, canvas.height);
 
@@ -608,25 +692,24 @@
       const elapsed = now - start;
       const p = Math.min(elapsed / duration, 1);
 
-      // ふわっとスケール（最初40%くらい）
       const pulsePhase = Math.min(p / 0.4, 1);
-      const scale = 1 + 0.10 * Math.sin(pulsePhase * Math.PI); // 少し大きく
+      const scale = 1 + 0.10 * Math.sin(pulsePhase * Math.PI);
 
       draw(scale);
 
       const W = canvas.width;
       const H = canvas.height;
 
-      // 光のリング（上の方）
+      // 光のリング（少し上寄り＝菊花紋章あたりから）
       if (p < 0.55) {
         const ringP = p / 0.55;
         const maxR = W * 0.65;
         const r = ringP * maxR;
-        const alpha = 0.8 * (1 - ringP);
+        const alpha = 0.9 * (1 - ringP);
 
         ctx.save();
         ctx.beginPath();
-        ctx.arc(W / 2, H * 0.38, r, 0, Math.PI * 2);
+        ctx.arc(W / 2, H * 0.30, r, 0, Math.PI * 2); // ここを少し上に
         ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
         ctx.lineWidth = 12 * (1 - ringP) + 3;
         ctx.stroke();
@@ -704,17 +787,13 @@
 
     if (tpl && TEMPLATE_SRC[tpl]) {
       currentTemplate = tpl;
-      templateEl.value = tpl;
-    } else {
-      templateEl.value = currentTemplate;
     }
+    templateEl.value = currentTemplate;
 
     if (style && NAME_FONTS[style]) {
       currentNameStyle = style;
-      nameStyleEl.value = style;
-    } else {
-      nameStyleEl.value = currentNameStyle;
     }
+    nameStyleEl.value = currentNameStyle;
 
     if (name) {
       nameEl.value = name;
