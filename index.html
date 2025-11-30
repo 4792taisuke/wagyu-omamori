@@ -105,57 +105,6 @@
       font-size:12px;
     }
 
-    /* --- インストール案内ボックス（多言語対応） --- */
-    .install-card {
-      margin-top: 8px;
-      border-left: 4px solid #fbbf24;
-      background: #fffdf5;
-    }
-    .install-title {
-      margin: 0 0 6px;
-      font-size: 18px;
-      font-weight: 700;
-    }
-    .install-lead {
-      margin: 0 0 10px;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-    .install-section {
-      margin-top: 10px;
-      padding-top: 8px;
-      border-top: 1px dashed #e5dec4;
-    }
-    .install-section h3 {
-      margin: 0 0 4px;
-      font-size: 14px;
-      font-weight: 700;
-    }
-    .install-steps {
-      margin: 0 0 4px 18px;
-      padding: 0;
-      font-size: 13px;
-      line-height: 1.5;
-    }
-    .install-steps li {
-      margin-bottom: 2px;
-    }
-    .install-note {
-      margin-top: 10px;
-      font-size: 12px;
-      line-height: 1.5;
-      color: #6b6450;
-    }
-    .install-lang {
-      display: none;
-    }
-    .install-lang.active {
-      display: block;
-    }
-    .install-title [data-lang] {
-      display: none;
-    }
-
     /* Toast メッセージ */
     .toast{
       position:fixed;
@@ -249,130 +198,6 @@
       </div>
     </section>
 
-    <!-- ★ インストール案内ボックス（多言語） -->
-    <section class="card panel install-card">
-      <h2 class="install-title">
-        <span data-lang="ja">スマホに「お守りアプリ」を入れる</span>
-        <span data-lang="en">Add the omamori app to your phone</span>
-        <span data-lang="zh">把御守应用添加到手机</span>
-      </h2>
-
-      <!-- 日本語 -->
-      <div class="install-lang" data-lang="ja">
-        <p class="install-lead">
-          ホーム画面に追加しておくと、いつでもすぐに<br>
-          「旅のお守り」を開けます。
-        </p>
-
-        <div class="install-section">
-          <h3>Android（Chrome）の場合</h3>
-          <ol class="install-steps">
-            <li>画面下 or 上に「アプリをインストール」などのバナーが出たらタップ</li>
-            <li>表示されない場合は、右上 <strong>︙</strong> メニューを開く</li>
-            <li><strong>「ホーム画面に追加」</strong> または <strong>「アプリをインストール」</strong> を選ぶ</li>
-          </ol>
-        </div>
-
-        <div class="install-section">
-          <h3>iPhone（Safari）の場合</h3>
-          <ol class="install-steps">
-            <li>下の <strong>共有ボタン（□に↑）</strong> をタップ</li>
-            <li>メニューをスクロールして <strong>「ホーム画面に追加」</strong> を選ぶ</li>
-            <li>名前を確認して <strong>追加</strong> をタップ</li>
-          </ol>
-        </div>
-
-        <div class="install-section">
-          <h3>PCブラウザ（Chrome）の場合</h3>
-          <ol class="install-steps">
-            <li>アドレスバー右側の <strong>「インストール」アイコン</strong> をクリック</li>
-            <li>または右上 <strong>︙</strong> → <strong>「お守りアプリをインストール」</strong></li>
-          </ol>
-        </div>
-
-        <p class="install-note">
-          ※ インストールすると、スマホのホーム画面に<br>
-          和風のお守りアイコンが表示されます。
-        </p>
-      </div>
-
-      <!-- English -->
-      <div class="install-lang" data-lang="en">
-        <p class="install-lead">
-          Add this site to your home screen<br>
-          and open your travel omamori with one tap.
-        </p>
-
-        <div class="install-section">
-          <h3>Android (Chrome)</h3>
-          <ol class="install-steps">
-            <li>If a banner like “Install app” appears, tap it.</li>
-            <li>If not, open the menu <strong>︙</strong> in the top-right.</li>
-            <li>Choose <strong>“Add to Home screen”</strong> or <strong>“Install app”</strong>.</li>
-          </ol>
-        </div>
-
-        <div class="install-section">
-          <h3>iPhone (Safari)</h3>
-          <ol class="install-steps">
-            <li>Tap the <strong>Share</strong> button (square with an ↑).</li>
-            <li>Scroll the menu and tap <strong>“Add to Home Screen”</strong>.</li>
-            <li>Check the name and tap <strong>Add</strong>.</li>
-          </ol>
-        </div>
-
-        <div class="install-section">
-          <h3>Desktop browser (Chrome)</h3>
-          <ol class="install-steps">
-            <li>Click the <strong>Install</strong> icon at the right of the address bar,</li>
-            <li>or open <strong>︙</strong> → <strong>“Install app”</strong>.</li>
-          </ol>
-        </div>
-
-        <p class="install-note">
-          The omamori icon will appear on your home screen like an app.
-        </p>
-      </div>
-
-      <!-- 中文 -->
-      <div class="install-lang" data-lang="zh">
-        <p class="install-lead">
-          添加到主屏幕后，只要轻轻一点，<br>
-          就能随时打开「旅行御守」。
-        </p>
-
-        <div class="install-section">
-          <h3>Android（Chrome）</h3>
-          <ol class="install-steps">
-            <li>如果出现“安装应用”等提示条，请点击。</li>
-            <li>没有显示时，点击右上角 <strong>︙</strong> 菜单。</li>
-            <li>选择 <strong>“添加到主屏幕”</strong> 或 <strong>“安装应用”</strong>。</li>
-          </ol>
-        </div>
-
-        <div class="install-section">
-          <h3>iPhone（Safari）</h3>
-          <ol class="install-steps">
-            <li>点击底部的 <strong>分享按钮（□和向上箭头）</strong>。</li>
-            <li>在菜单中找到并点击 <strong>“添加到主屏幕”</strong>。</li>
-            <li>确认名称后点击 <strong>添加</strong>。</li>
-          </ol>
-        </div>
-
-        <div class="install-section">
-          <h3>电脑浏览器（Chrome）</h3>
-          <ol class="install-steps">
-            <li>点击地址栏右侧的 <strong>“安装” 图标</strong>，</li>
-            <li>或点击右上角 <strong>︙</strong> → <strong>“安装应用”</strong>。</li>
-          </ol>
-        </div>
-
-        <p class="install-note">
-          安装后，主屏幕上会出现和风御守图标，看起来就像一个应用。
-        </p>
-      </div>
-    </section>
-
     <!-- 右：プレビュー -->
     <section class="card preview">
       <canvas id="view" width="1200" height="1800" aria-label="お守りプレビュー"></canvas>
@@ -406,9 +231,6 @@
   const labelTemplate = document.getElementById("label-template");
   const labelStyle    = document.getElementById("label-style");
   const footerEl  = document.querySelector(".footer");
-
-  const installLangBlocks = document.querySelectorAll(".install-lang");
-  const installTitleSpans = document.querySelectorAll(".install-title [data-lang]");
 
   const luckyBox    = document.getElementById("lucky-box");
   const luckyScoreEl= document.getElementById("lucky-score");
@@ -631,19 +453,6 @@
     footerEl.innerHTML    = t.footer;
   }
 
-  // ===== インストール案内ボックスの言語切り替え =====
-  function updateInstallGuideLanguage() {
-    const lang = currentLang || "ja";
-
-    installLangBlocks.forEach((el) => {
-      el.classList.toggle("active", el.dataset.lang === lang);
-    });
-
-    installTitleSpans.forEach((span) => {
-      span.style.display = (span.dataset.lang === lang) ? "inline" : "none";
-    });
-  }
-
   // ===== 背景色ボタンを描き直す =====
   function buildPalette() {
     paletteEl.innerHTML = "";
@@ -654,6 +463,8 @@
       btn.dataset.color = c.color;
       btn.dataset.key   = c.key;
       btn.textContent   = c.labels[currentLang];
+      btn.style.background = c.color;
+      btn.style.color = "#fff";
       paletteEl.appendChild(btn);
     });
   }
@@ -914,7 +725,6 @@
 
   // ===== イベント設定 =====
   makeBtn.addEventListener("click", () => {
-    // 再描画 & アニメーション
     draw();
     triggerOmamoriAnimation();
     updateLuckyMessage();
@@ -926,7 +736,6 @@
     currentLang = langEl.value;
     applyUILanguage();
     buildPalette();
-    updateInstallGuideLanguage();
     draw();
   });
 
@@ -971,7 +780,6 @@
   applyStateFromURL();
   applyUILanguage();
   buildPalette();
-  updateInstallGuideLanguage();
 
   // PWA: Service Worker 登録
   if ("serviceWorker" in navigator) {
