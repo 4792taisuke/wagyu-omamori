@@ -388,19 +388,28 @@
     },
   ];
 
- // ===== 名前フォントスタイル =====
-const NAME_FONTS = {
-  // 落ち着いた明朝系
-  classic: '"Noto Serif JP", "Yu Mincho", "Hiragino Mincho ProN", serif',
-  // ラフな手書き風
-  hand: '"Comic Sans MS", "Bradley Hand", "Hachi Maru Pop", cursive, system-ui',
-  // 細めで上品
-  elegant: '"Georgia", "Times New Roman", "Noto Serif JP", serif',
-  // しっかり太めのゴシック
-  bold: '"Noto Sans JP", "Yu Gothic", "Hiragino Kaku Gothic ProN", sans-serif',
-  // ちょっと丸みのあるポップ系
-  pop: '"Trebuchet MS", "Rounded Mplus 1c", "Noto Sans JP", system-ui, sans-serif',
-};
+  // ===== 名前フォントスタイル =====
+  const NAME_FONTS = {
+    // 落ち着いた明朝系
+    classic: '"Noto Serif JP", "Yu Mincho", "Hiragino Mincho ProN", serif',
+    // ラフな手書き風
+    hand: '"Comic Sans MS", "Bradley Hand", "Hachi Maru Pop", cursive, system-ui',
+    // 細めで上品
+    elegant: '"Georgia", "Times New Roman", "Noto Serif JP", serif',
+    // しっかり太めのゴシック
+    bold: '"Noto Sans JP", "Yu Gothic", "Hiragino Kaku Gothic ProN", sans-serif',
+    // ちょっと丸みのあるポップ系
+    pop: '"Trebuchet MS", "Rounded Mplus 1c", "Noto Sans JP", system-ui, sans-serif',
+  };
+
+  // ★ 2-2: スタイルごとの太さ
+  const NAME_WEIGHTS = {
+    classic: "600",
+    hand: "600",
+    elegant: "500",
+    bold: "900",
+    pop: "700",
+  };
 
   const NAME_STYLE_I18N = {
     classic: {
@@ -496,6 +505,9 @@ const NAME_FONTS = {
   // ===== UIテキストを反映 =====
   function applyUILanguage() {
     const t = UI_I18N[currentLang];
+
+    // ★ 3: <html lang="..."> も切り替え
+    document.documentElement.lang = currentLang;
 
     headingEl.textContent = t.heading;
     subEl.innerHTML       = `${t.sub} <strong>#wagyu_blessing</strong>`;
@@ -614,7 +626,8 @@ const NAME_FONTS = {
     drawText(langData.sub,   W / 2, layout.subY,   layout.subSize,   "600");
     // Traveler（名前）
     const nameFontFamily = NAME_FONTS[currentNameStyle] || NAME_FONTS.classic;
-    drawText(travelerName,  W / 2, layout.nameY,  layout.nameSize,  "700", nameFontFamily);
+    const nameWeight = NAME_WEIGHTS[currentNameStyle] || "700";
+    drawText(travelerName,  W / 2, layout.nameY,  layout.nameSize,  nameWeight, nameFontFamily);
     // ハッシュタグ
     drawText("#wagyu_blessing", W / 2, layout.hashY, layout.hashSize, "600");
 
@@ -711,7 +724,7 @@ const NAME_FONTS = {
 
         ctx.save();
         ctx.beginPath();
-        ctx.arc(W / 2, H * 0.27, r, 0, Math.PI * 2); // ここを少し上に
+        ctx.arc(W / 2, H * 0.26, r, 0, Math.PI * 2); // ここを少し上に
         ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
         ctx.lineWidth = 12 * (1 - ringP) + 3;
         ctx.stroke();
