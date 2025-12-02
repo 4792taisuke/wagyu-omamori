@@ -292,7 +292,7 @@
     ja: {
       title: "旅のお守り",
       sub: "安全な旅路と長寿を祈って",
-      traveler: "おきなわ 花子",
+      traveler: "沖縄 花子",
     },
     en: {
       title: "Travel Blessing Charm",
@@ -337,7 +337,7 @@
     zh: {
       heading:  "品尝幸运 —— 祝您旅途平安、长命百岁。",
       sub:      "来自冲绳的和牛幸运三明治｜制作日本御守风格的设计并分享到 SNS！",
-      labelLang:"Language",
+      labelLang:"语言",
       labelName:"姓名（可选）",
       labelBg:  "背景颜色",
       labelTemplate: "模板",
@@ -388,14 +388,19 @@
     },
   ];
 
-  // ===== 名前フォントスタイル =====
-  const NAME_FONTS = {
-    classic: '"Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif',
-    hand: '"Comic Sans MS", "Bradley Hand", system-ui, sans-serif',
-    elegant: '"Georgia", "Times New Roman", serif',
-    bold: '"Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif',
-    pop: '"Trebuchet MS", system-ui, -apple-system, sans-serif',
-  };
+ // ===== 名前フォントスタイル =====
+const NAME_FONTS = {
+  // 落ち着いた明朝系
+  classic: '"Noto Serif JP", "Yu Mincho", "Hiragino Mincho ProN", serif',
+  // ラフな手書き風
+  hand: '"Comic Sans MS", "Bradley Hand", "Hachi Maru Pop", cursive, system-ui',
+  // 細めで上品
+  elegant: '"Georgia", "Times New Roman", "Noto Serif JP", serif',
+  // しっかり太めのゴシック
+  bold: '"Noto Sans JP", "Yu Gothic", "Hiragino Kaku Gothic ProN", sans-serif',
+  // ちょっと丸みのあるポップ系
+  pop: '"Trebuchet MS", "Rounded Mplus 1c", "Noto Sans JP", system-ui, sans-serif',
+};
 
   const NAME_STYLE_I18N = {
     classic: {
@@ -683,7 +688,7 @@
 
     const duration = 3000; // 少し長めにして、ゆっくり落ちる
     const start = performance.now();
-    const petals = createPetals(80, duration, canvas.height);
+    const petals = createPetals(90, duration, canvas.height);
 
     function frame(now) {
       const elapsed = now - start;
@@ -706,7 +711,7 @@
 
         ctx.save();
         ctx.beginPath();
-        ctx.arc(W / 2, H * 0.30, r, 0, Math.PI * 2); // ここを少し上に
+        ctx.arc(W / 2, H * 0.27, r, 0, Math.PI * 2); // ここを少し上に
         ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
         ctx.lineWidth = 12 * (1 - ringP) + 3;
         ctx.stroke();
