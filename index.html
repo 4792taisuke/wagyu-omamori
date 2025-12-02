@@ -400,33 +400,61 @@
     pop: '"Trebuchet MS", system-ui, -apple-system, sans-serif',
   };
 
-  const NAME_STYLE_I18N = {
-    classic: {
+ // ===== 名前フォントスタイル =====
+const NAME_STYLES = {
+  classic: {
+    labels: {
       ja: "クラシック",
       en: "Classic",
       zh: "经典",
     },
-    hand: {
-      ja: "手書き風",
-      en: "Handwritten",
-      zh: "手写风",
-    },
-    elegant: {
-      ja: "エレガント",
-      en: "Elegant",
-      zh: "优雅",
-    },
-    bold: {
+    // 落ち着いた明朝体ベース
+    font: (size) =>
+      `600 ${size}px "Noto Serif JP","Hiragino Mincho ProN","Yu Mincho","Times New Roman",serif`,
+    transform: (text) => text, // そのまま
+  },
+  bold: {
+    labels: {
       ja: "ボールド",
       en: "Bold",
       zh: "粗体",
     },
-    pop: {
+    // ガツンと太いゴシック体＋英字は大文字に
+    font: (size) =>
+      `900 ${size}px "Noto Sans JP","Hiragino Sans","Yu Gothic","Arial Black",sans-serif`,
+    transform: (text) => text.toUpperCase(),
+  },
+  handwritten: {
+    labels: {
+      ja: "手書き",
+      en: "Handwritten",
+      zh: "手写",
+    },
+    font: (size) =>
+      `700 ${size}px "Yuji Boku","Hachi Maru Pop","Comic Sans MS","Noto Sans JP",sans-serif`,
+    transform: (text) => text,
+  },
+  elegant: {
+    labels: {
+      ja: "エレガント",
+      en: "Elegant",
+      zh: "优雅",
+    },
+    font: (size) =>
+      `600 ${size}px "Noto Serif JP","Hiragino Mincho ProN","Georgia","Times New Roman",serif`,
+    transform: (text) => text,
+  },
+  pop: {
+    labels: {
       ja: "ポップ",
       en: "Pop",
-      zh: "流行风",
+      zh: "俏皮",
     },
-  };
+    font: (size) =>
+      `800 ${size}px "M PLUS Rounded 1c","Rounded Mplus 1c","Arial Rounded MT Bold","Noto Sans JP",sans-serif`,
+    transform: (text) => text,
+  },
+};
 
   // ===== キャンバス上レイアウト（言語別） =====
   const LAYOUT = {
@@ -512,18 +540,16 @@
   }
 
   // ===== テンプレートの選択肢を再構成 =====
-  function buildTemplateOptions() {
-    const order = ["shuri","ocean","flowers","character"];
-    templateEl.innerHTML = "";
-    order.forEach(key => {
-      const opt = document.createElement("option");
-      opt.value = key;
-      const labels = TEMPLATE_I18N[key];
-      opt.textContent = labels ? labels[currentLang] : key;
-      if (key === currentTemplate) opt.selected = true;
-      templateEl.appendChild(opt);
-    });
-  }
+function buildNameStyleOptions() {
+  nameStyleEl.innerHTML = "";
+  Object.entries(NAME_STYLES).forEach(([key, style]) => {
+    const opt = document.createElement("option");
+    opt.value = key;
+    opt.textContent = style.labels[currentLang] || style.labels.en;
+    nameStyleEl.appendChild(opt);
+  });
+}
+
 
   // ===== Name Style の選択肢を再構成 =====
   function buildNameStyleOptions() {
